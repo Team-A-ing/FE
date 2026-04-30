@@ -9,6 +9,7 @@ dist-ssr/
 *.local
 
 # Local environment (절대 커밋 금지)
+.env
 .env.local
 .env.development.local
 .env.test.local
@@ -27,3 +28,6 @@ yarn-error.log*
 # OS
 .DS_Store
 Thumbs.db
+
+# Local Git 환경
+gitmessage.txt
