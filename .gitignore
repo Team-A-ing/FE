@@ -1,9 +1,9 @@
 # Dependencies
-node_modules/
+node_modules
 
 # Build output
-dist/
-dist-ssr/
+dist
+dist-ssr
 
 # Vite
 *.local
@@ -16,14 +16,23 @@ dist-ssr/
 .env.production.local
 
 # Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
 
 # Editor
-.idea/
+.vscode/*
+!.vscode/extensions.json
+.idea
+.ntvs*
+*.njsproj
+*.sln
 *.suo
-*.sw?
+*.sw?*
 
 # OS
 .DS_Store
@@ -31,3 +40,5 @@ Thumbs.db
 
 # Local Git 환경
 gitmessage.txt
+
+# Editor directories and files

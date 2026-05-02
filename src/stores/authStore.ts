@@ -1,22 +1,22 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { User } from '@/types/user'
+import { create } from 'zustand';
+import type { User } from '@/types/user';
 
 interface AuthState {
-  accessToken: string | null
-  user: User | null
-  setAuth: (token: string, user: User) => void
-  clearAuth: () => void
+  user: User | null;
+  token: string | null;
+  setAuth: (user: User, token: string) => void;
+  clearAuth: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      accessToken: null,
-      user: null,
-      setAuth: (accessToken, user) => set({ accessToken, user }),
-      clearAuth: () => set({ accessToken: null, user: null }),
-    }),
-    { name: 'readb-auth' }
-  )
-)
+export const useAuthStore = create<AuthState>((set) => ({
+  user: {
+    id: 'u1',
+    name: '김지수',
+    email: 'jisukim924@gmail.com',
+    role: 'leader',
+    avatarInitials: '김지',
+  },
+  token: 'mock-token',
+  setAuth: (user, token) => set({ user, token }),
+  clearAuth: () => set({ user: null, token: null }),
+}));
