@@ -97,7 +97,7 @@ export default function Sidebar() {
 
   return (
     <aside
-      style={{ width: 'var(--sidebar-width)' }}
+      style={{ width: 'var(--sidebar-width)', background: '#F8F9FA', borderRight: '1px solid #E9ECEF' }}
       className="fixed left-0 top-0 h-full flex flex-col bg-white border-r border-gray-100 z-20"
     >
       {/* Workspace */}
@@ -115,7 +115,7 @@ export default function Sidebar() {
 
       {/* New 1on1 Button */}
       <div className="px-4 pt-3 pb-2">
-        <button className="w-full py-2 px-3 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors">
+        <button className="w-full py-2 px-3 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-700 transition-colors">
           새 1on1 만들기
         </button>
       </div>
@@ -127,9 +127,9 @@ export default function Sidebar() {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 transition-colors ${
+              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm mb-0.5 transition-colors ${
                 isActive
-                  ? 'bg-gray-100 text-gray-900 font-medium'
+                  ? 'bg-gray-200 text-gray-900 font-medium'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
               }`
             }
