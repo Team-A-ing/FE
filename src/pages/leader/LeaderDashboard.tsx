@@ -1,11 +1,15 @@
 import { useState, useRef } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ScatterRadar from '@/components/charts/ScatterRadar';
-import BlockerCloud from '@/components/charts/BlockerCloud';
+import BlockerCloud from '@/components/charts/BlockerCloud'; /* */
+import BlockerMap from '@/components/charts/BlockerMap';
+import FeedbackCardList from '@/components/feedback/FeedbackCardList';
+import BlockerSummary from '@/components/feedback/BlockerSummary'
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { useRadarData } from '@/features/leader/useRadarData';
 import { useBlockerData } from '@/features/leader/useBlockerData';
+import { useBlockerFeedback } from '@/features/leader/useBlockerFeedback';
 import type { ActionItem, CommunicationBalance } from '@/types/analysis';
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
@@ -88,12 +92,14 @@ type ChartTab = 'radar' | 'blocker';
 
 export default function LeaderDashboard() {
   const { data: radarData, stats, actions, comms, loading } = useRadarData('team-1');
-  const { words } = useBlockerData('team-1');
+  const { points } = useBlockerData('team-1');
+  const { blockerFeedback } = useBlockerFeedback('team-1');
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
   const [riskThreshold, setRiskThreshold] = useState(0.5);
   // 입력 필드용 별도 문자열 state (편집 중엔 자유롭게, blur 시 확정)
   const [riskInputValue, setRiskInputValue] = useState('0.5');
   const riskInputRef = useRef<HTMLInputElement>(null);
+
 
   // 0.1 단위로 내림 처리
   const applyRiskInput = (raw: string) => {
@@ -309,9 +315,23 @@ export default function LeaderDashboard() {
             )}
 
             {activeTab === 'blocker' && (
-              <div style={{ height: 460 }}>
-                <BlockerCloud words={words} />
+              <div className="flex flex-col gap-4">
+    
+                <div style={{ height: 460 }}>
+                  <BlockerMap points={points} />
+                </div>
+                {blockerFeedback && (
+                  <>
+                    <hr/>
+                    <BlockerSummary summary={blockerFeedback.summary} />
+                    <hr/>
+                    Action Feedback 
+                    <FeedbackCardList items={blockerFeedback.actions} />
+                  </>
+                )}
+
               </div>
+              
             )}
           </Card>
 
