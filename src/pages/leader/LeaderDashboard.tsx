@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ScatterRadar from '@/components/charts/ScatterRadar';
 import BlockerCloud from '@/components/charts/BlockerCloud';
@@ -91,6 +91,22 @@ export default function LeaderDashboard() {
   const { words } = useBlockerData('team-1');
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
   const [riskThreshold, setRiskThreshold] = useState(0.5);
+  // 입력 필드용 별도 문자열 state (편집 중엔 자유롭게, blur 시 확정)
+  const [riskInputValue, setRiskInputValue] = useState('0.5');
+  const riskInputRef = useRef<HTMLInputElement>(null);
+
+  // 0.1 단위로 내림 처리
+  const applyRiskInput = (raw: string) => {
+    const num = parseFloat(raw);
+    if (isNaN(num)) {
+      setRiskInputValue(riskThreshold.toFixed(1));
+      return;
+    }
+    const clamped = Math.min(1, Math.max(0, num));
+    const floored = Math.floor(clamped * 10) / 10;
+    setRiskThreshold(floored);
+    setRiskInputValue(floored.toFixed(1));
+  };
 
   // Derived delta display
   const motivationDelta = stats?.motivationDelta ?? 0;
@@ -217,7 +233,7 @@ export default function LeaderDashboard() {
                 }`}
                 onClick={() => setActiveTab('radar')}
               >
-                조용한 위험 멤버 레이더
+                Team Member Rader
               </button>
               <button
                 className={`px-4 py-1.5 text-sm rounded-md font-medium transition-colors ${
@@ -257,19 +273,37 @@ export default function LeaderDashboard() {
                       type="range"
                       min={0}
                       max={1}
-                      step={0.05}
+                      step={0.1}
                       value={riskThreshold}
-                      onChange={(e) => setRiskThreshold(Number(e.target.value))}
+                      onChange={(e) => {
+                        const v = Math.floor(Number(e.target.value) * 10) / 10;
+                        setRiskThreshold(v);
+                        setRiskInputValue(v.toFixed(1));
+                      }}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      style={{ touchAction: 'none' }}
                     />
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-red-400 rounded-full shadow"
+                      className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-red-400 rounded-full shadow pointer-events-none"
                       style={{ left: `calc(${riskThreshold * 100}% - 6px)` }}
                     />
                   </div>
-                  <span className="text-xs text-gray-500 w-8 text-right">
-                    {riskThreshold.toFixed(1)}
-                  </span>
+                  {/* 직접 입력 가능한 숫자 필드 */}
+                  <input
+                    ref={riskInputRef}
+                    type="text"
+                    inputMode="decimal"
+                    value={riskInputValue}
+                    onChange={(e) => setRiskInputValue(e.target.value)}
+                    onBlur={(e) => applyRiskInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        applyRiskInput(riskInputValue);
+                        riskInputRef.current?.blur();
+                      }
+                    }}
+                    className="w-10 text-xs text-center text-gray-700 border border-gray-200 rounded-md py-0.5 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200"
+                  />
                 </div>
               </>
             )}
