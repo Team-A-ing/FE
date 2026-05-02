@@ -11,10 +11,10 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: {
     id: 'u1',
-    name: '김지수',
-    email: 'jisukim924@gmail.com',
+    name: 'Guest',
+    email: 'guest@readb.io',
     role: 'leader',
-    avatarInitials: '김지',
+    avatarInitials: 'G',
   },
   token: 'mock-token',
   setAuth: (user, token) => set({ user, token }),

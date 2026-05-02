@@ -81,11 +81,11 @@ const ChevronRightIcon = () => (
 );
 
 const navItems: NavItem[] = [
-  { label: '1on1 미팅', path: ROUTES.LEADER_DASHBOARD, icon: <CalendarIcon /> },
+  { label: '1on1 미팅', path: '/leader/meetings', icon: <CalendarIcon /> },
   { label: '멤버 리포트', path: '/leader/reports', icon: <UsersIcon /> },
   { label: '9Box', path: '/leader/9box', icon: <GridIcon /> },
   { label: '대시보드', path: '/leader/overview', icon: <BarChartIcon /> },
-];
+  { label: '팀 인사이트 대시보드', path: '/leader/dashboard', icon: <BarChartIcon /> },];
 
 const bottomItems = [
   { label: '설정', path: '/settings', icon: <SettingsIcon /> },
@@ -176,11 +176,11 @@ export default function Sidebar() {
       <div className="px-4 py-3 border-t border-gray-100">
         <div className="flex items-center gap-2">
           <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-semibold">{user?.avatarInitials ?? '?'}</span>
+            <span className="text-white text-xs font-semibold">G</span>
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">{user?.name}</p>
-            <p className="text-xs text-gray-400 truncate">{user?.email}</p>
+            <p className="text-sm font-medium text-gray-800 truncate">Guest</p>
+            <p className="text-xs text-gray-400 truncate">guest@readb.io</p>
           </div>
         </div>
       </div>

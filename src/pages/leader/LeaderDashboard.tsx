@@ -116,7 +116,7 @@ export default function LeaderDashboard() {
     <PageLayout>
       <div className="p-6 max-w-[1400px] mx-auto">
         {/* Page Title */}
-        <h1 className="text-xl font-bold text-gray-900 mb-5">팀 대시보드</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-5">팀 인사이트 대시보드</h1>
 
         {/* ── KPI Row ── */}
         <div className="flex gap-3 mb-5">
