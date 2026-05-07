@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { useRecorder } from "@/features/meeting/useRecorder";
@@ -9,10 +10,10 @@ import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 
 export default function MeetingDetailPage() {
-  const { meetings, currentMeetingId, getCurrentMeeting, updateMeetingStatus, setRecordingDuration } =
-    useMeetingStore();
-  const { isCreateModalOpen, setCreateModalOpen } = useMeetingStore(); // 전역 상태 사용
-  const meeting = getCurrentMeeting();
+  const { meetingId } = useParams<{ meetingId: string }>();
+  const navigate = useNavigate();
+  const { meetings, updateMeetingStatus, setRecordingDuration } = useMeetingStore();
+  const meeting = meetingId ? meetings.find((m) => m.id === meetingId) : null;
   const recorder = useRecorder();
   const { upload } = useUploadRecording();
   const [showStart, setShowStart] = useState(false);
@@ -40,42 +41,22 @@ export default function MeetingDetailPage() {
   }, [meeting, recorder, updateMeetingStatus, setRecordingDuration, upload]);
 
   const contentComponent = (() => {
-    // 1. 진행 중인 미팅이 없을 때 (목록 화면)
+    // 1. 없는 미팅 ID로 접근했을 때
     if (!meeting) {
       return (
         <div className="p-8">
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col gap-4 items-start">
             <h1 className="text-xl font-bold">1on1 미팅</h1>
+            <p className="text-sm text-gray-500">
+              요청하신 미팅을 찾을 수 없습니다. 목록으로 돌아가서 다시 선택해주세요.
+            </p>
             <button
-              // 4. 클릭 시 전역 상태를 true로 변경
-              onClick={() => setCreateModalOpen(true)} 
-              className="px-5 py-2.5 rounded-lg text-sm text-white bg-[#5F74FA] hover:bg-[#4E62E6]"
+              onClick={() => navigate('/leader/meetings')}
+              className="rounded-lg bg-[#5F74FA] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#4E62E6]"
             >
-              새 1on1 만들기
+              1on1 목록으로 이동
             </button>
           </div>
-
-          <section className="mb-8">
-            <h2 className="font-semibold mb-4">예정된 미팅</h2>
-            {meetings.filter((m) => m.status === "pending").length === 0 ? (
-              <p className="text-sm text-gray-400">예정된 미팅이 없습니다.</p>
-            ) : (
-              <div className="space-y-3">
-                {meetings
-                  .filter((m) => m.status === "pending")
-                  .map((m) => (
-                    <div key={m.id} className="border border-gray-200 rounded-xl p-4 flex items-center justify-between">
-                      <div>
-                        <span className="font-medium">{m.partner.name}</span>
-                        <span className="ml-3 text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-600">
-                          {m.date}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            )}
-          </section>
         </div>
       );
     }

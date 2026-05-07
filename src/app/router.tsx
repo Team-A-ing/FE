@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import LoginPage from '@/pages/auth/LoginPage';
 import SignupPage from '@/pages/auth/SignupPage';
 import LeaderDashboard from '@/pages/leader/LeaderDashboard';
+import MeetingsPage from '@/pages/leader/MeetingsPage';
 import MeetingDetailPage from '@/pages/leader/MeetingDetailPage';
 import PromiseLedgerPage from '@/pages/leader/PromiseLedgerPage';
 import MemberDashboard from '@/pages/member/MemberDashboard';
@@ -13,7 +14,7 @@ const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/signup', element: <SignupPage /> },
   { path: '/leader/dashboard', element: <LeaderDashboard /> },
-  { path: '/leader/meetings', element: <LeaderDashboard /> },
+  { path: '/leader/meetings', element: <MeetingsPage /> },
   { path: '/leader/meeting/:meetingId', element: <MeetingDetailPage /> },
   { path: '/leader/promises', element: <PromiseLedgerPage /> },
   { path: '/leader/reports', element: <LeaderDashboard /> },

@@ -1,6 +1,6 @@
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { useMeetingStore } from '@/stores/meetingStore'; // 스토어 임포트
+import { useMeetingStore } from '@/stores/meetingStore';
 import { ROUTES } from '@/constants/routes';
 
 interface NavItem {
