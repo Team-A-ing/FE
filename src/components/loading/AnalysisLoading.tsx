@@ -57,9 +57,9 @@ export default function AnalysisLoading({ role, recordingDuration }: Props) {
       </div>
 
       {/* 메인 안내 */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8">
+      <div className="flex-1 flex flex-col items-center justify-center px-8 m-3">
         <h2 className="text-lg font-bold text-[#5F74FA] mb-2">
-          AI가 1on1 미팅을 분석하고 있어요 ✨
+          1on1 미팅 분석중
         </h2>
         <p className="text-sm text-gray-500 text-center mb-1">
           약 3분의 시간이 소요되며, 브라우저·서버 환경에 따라 조금 더 지체될 수 있습니다.
@@ -68,7 +68,7 @@ export default function AnalysisLoading({ role, recordingDuration }: Props) {
           분석이 완료되면 우측 하단 알림으로 알려드릴게요!
         </p>
         <p className="text-sm text-yellow-600 font-semibold mb-6">
-          ⚠️ 화면을 나가시지 말고 대기해주세요!
+          화면을 나가시지 말고 대기해주세요!
         </p>
         <p className="text-xs text-gray-400">
           새로고침을 하지 않도록 주의해주세요! 다른 탭을 열어 업무를 보시는 것은 괜찮아요!
