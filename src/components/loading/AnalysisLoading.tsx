@@ -1,19 +1,152 @@
-import { loadingSteps, witCopies } from './loadingCopies';
+import { useState, useEffect } from "react";
+import { ANALYSIS_STEPS, WITTY_COPIES } from "./loadingCopies";
+import type { AnalysisStep } from "@/types/meeting";
 
-interface AnalysisLoadingProps {
-  role: 'leader' | 'member';
-  currentStep?: number;
+interface Props {
+  role: "leader" | "member";
+  recordingDuration?: number;
 }
 
-export default function AnalysisLoading({ role, currentStep = 1 }: AnalysisLoadingProps) {
-  const copies = witCopies[role];
-  const step = loadingSteps.find((s) => s.step === currentStep) ?? loadingSteps[0];
+function formatDuration(s?: number) {
+  if (!s) return "00:00:00";
+  const h = String(Math.floor(s / 3600)).padStart(2, "0");
+  const m = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const sec = String(s % 60).padStart(2, "0");
+  return `${h}:${m}:${sec}`;
+}
+
+export default function AnalysisLoading({ role, recordingDuration }: Props) {
+  const [step, setStep] = useState<AnalysisStep>(0);
+  const [progress, setProgress] = useState(0);
+  const copies = WITTY_COPIES[role];
+
+  useEffect(() => {
+    const iv = setInterval(() => {
+      setProgress((p) => {
+        if (p >= 100) { clearInterval(iv); return 100; }
+        const next = p + 0.5;
+        setStep(Math.min(3, Math.floor(next / 25)) as AnalysisStep);
+        return next;
+      });
+    }, 100);
+    return () => clearInterval(iv);
+  }, []);
+
+  const r = 42;
+  const circ = 2 * Math.PI * r;
 
   return (
-    <div className="flex flex-col items-center justify-center h-full gap-4 py-12">
-      <div className="text-4xl">{step.icon}</div>
-      <p className="text-base font-medium text-gray-700">{step.label}</p>
-      <p className="text-sm text-gray-400">{copies[currentStep % copies.length]}</p>
+    <div className="flex-1 flex flex-col">
+      {/* 상단 탭 */}
+      <div className="border-b border-gray-200 px-8 py-4">
+        <p className="text-sm text-gray-500">🎙️ 녹음 완료 {formatDuration(recordingDuration)}</p>
+        <div className="flex gap-4 mt-4 -mb-[1px]">
+          {["미팅 본문", "요약", "분석"].map((tab, i) => (
+            <button
+              key={tab}
+              className={`pb-2 text-sm font-medium ${
+                i === 0
+                  ? "border-b-2 border-[#5F74FA] text-[#5F74FA]"
+                  : "text-gray-400"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 메인 안내 */}
+      <div className="flex-1 flex flex-col items-center justify-center px-8">
+        <h2 className="text-lg font-bold text-[#5F74FA] mb-2">
+          AI가 1on1 미팅을 분석하고 있어요 ✨
+        </h2>
+        <p className="text-sm text-gray-500 text-center mb-1">
+          약 3분의 시간이 소요되며, 브라우저·서버 환경에 따라 조금 더 지체될 수 있습니다.
+        </p>
+        <p className="text-sm text-gray-500 text-center mb-4">
+          분석이 완료되면 우측 하단 알림으로 알려드릴게요!
+        </p>
+        <p className="text-sm text-yellow-600 font-semibold mb-6">
+          ⚠️ 화면을 나가시지 말고 대기해주세요!
+        </p>
+        <p className="text-xs text-gray-400">
+          새로고침을 하지 않도록 주의해주세요! 다른 탭을 열어 업무를 보시는 것은 괜찮아요!
+        </p>
+      </div>
+
+      {/* 하단 프로그레스 카드 */}
+      <div className="border-t border-gray-200 p-6">
+        <div className="max-w-md mx-auto">
+          {/* 원형 프로그레스 */}
+          <div className="flex flex-col items-center mb-6">
+            <div className="relative w-24 h-24 mb-3">
+              <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r={r} fill="none" stroke="#F3F4F6" strokeWidth="8" />
+                <circle
+                  cx="50" cy="50" r={r} fill="none" stroke="#8B5CF6" strokeWidth="8"
+                  strokeDasharray={circ}
+                  strokeDashoffset={circ * (1 - progress / 100)}
+                  strokeLinecap="round"
+                  className="transition-all duration-300"
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-2xl font-bold text-[#8B5CF6]">{Math.round(progress)}</span>
+                <span className="text-xs text-gray-400">%</span>
+              </div>
+            </div>
+            <p className="font-semibold text-sm">
+              {ANALYSIS_STEPS[step].icon} {ANALYSIS_STEPS[step].label}
+            </p>
+            <p className="text-xs text-gray-400">Step {step + 1} / 4</p>
+          </div>
+
+          {/* 단계 리스트 */}
+          <div className="space-y-3 mb-6">
+            {ANALYSIS_STEPS.map((s, i) => {
+              const active = i === step;
+              const done = i < step;
+              return (
+                <div
+                  key={i}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl border ${
+                    active
+                      ? "border-[#5F74FA] bg-white shadow-sm"
+                      : done
+                        ? "border-green-200 bg-green-50"
+                        : "border-gray-100 bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                        active
+                          ? "bg-[#5F74FA] text-white"
+                          : done
+                            ? "bg-green-400 text-white"
+                            : "bg-gray-200 text-gray-400"
+                      }`}
+                    >
+                      {done ? "✓" : s.icon}
+                    </div>
+                    <span className={`text-sm ${active ? "font-medium text-gray-800" : "text-gray-400"}`}>
+                      {s.label}
+                    </span>
+                  </div>
+                  {active && <span className="text-xs text-[#5F74FA] font-medium">진행 중</span>}
+                  {done && <span className="text-xs text-green-500 font-medium">완료</span>}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* 위트 카피 */}
+          <div className="bg-purple-50 rounded-xl p-4 text-center">
+            <p className="text-sm text-gray-600 italic">{copies[step]}</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

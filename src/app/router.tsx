@@ -22,6 +22,7 @@ const router = createBrowserRouter([
   { path: '/member/dashboard', element: <MemberDashboard /> },
   { path: '/member/meeting/:meetingId', element: <MeetingFeedbackPage /> },
   { path: '/member/survey/:meetingId', element: <SurveyPage /> },
+  { path: '/meeting', element: <MeetingDetailPage/> },
   { path: '/settings', element: <LeaderDashboard /> },
   { path: '/invite', element: <LeaderDashboard /> },
 ]);

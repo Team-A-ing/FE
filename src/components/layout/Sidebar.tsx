@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { useMeetingStore } from '@/stores/meetingStore'; // 스토어 임포트
 import { ROUTES } from '@/constants/routes';
 
 interface NavItem {
@@ -93,7 +94,7 @@ const bottomItems = [
 ];
 
 export default function Sidebar() {
-  const { user } = useAuthStore();
+  const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
 
   return (
     <aside
@@ -115,7 +116,10 @@ export default function Sidebar() {
 
       {/* New 1on1 Button */}
       <div className="px-4 pt-3 pb-2">
-        <button className="w-full py-2 px-3 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-700 transition-colors">
+        <button 
+          onClick={() => setCreateModalOpen(true)} // 클릭 시 전역 상태 변경
+          className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+        >
           새 1on1 만들기
         </button>
       </div>
