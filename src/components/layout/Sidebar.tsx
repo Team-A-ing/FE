@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { useMeetingStore } from '@/stores/meetingStore';
 import { ROUTES } from '@/constants/routes';
 
 interface NavItem {
@@ -93,7 +94,11 @@ const bottomItems = [
 ];
 
 export default function Sidebar() {
-  const { user } = useAuthStore();
+  const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
+  const location = useLocation();
+
+  // "1on1 미팅" 네비게이션이 활성화되어야 하는 경로들
+  const isMeetingActive = location.pathname === '/leader/meetings' || location.pathname.startsWith('/leader/meeting/');
 
   return (
     <aside
@@ -115,29 +120,35 @@ export default function Sidebar() {
 
       {/* New 1on1 Button */}
       <div className="px-4 pt-3 pb-2">
-        <button className="w-full py-2 px-3 bg-gray-900 text-white text-sm font-medium rounded-xl hover:bg-gray-700 transition-colors">
+        <button 
+          onClick={() => setCreateModalOpen(true)} // 클릭 시 전역 상태 변경
+          className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+        >
           새 1on1 만들기
         </button>
       </div>
 
       {/* Nav */}
       <nav className="flex-1 px-3 pt-1 overflow-y-auto">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm mb-0.5 transition-colors ${
+        {navItems.map((item) => {
+          // 1on1 미팅 아이템의 경우 특별한 활성화 로직 적용
+          const isActive = item.path === '/leader/meetings' ? isMeetingActive : location.pathname === item.path;
+          
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm mb-0.5 transition-colors ${
                 isActive
                   ? 'bg-gray-200 text-gray-900 font-medium'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`
-            }
-          >
-            <span className="text-gray-500">{item.icon}</span>
-            {item.label}
-          </NavLink>
-        ))}
+              }`}
+            >
+              <span className="text-gray-500">{item.icon}</span>
+              {item.label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       {/* Bottom Nav */}
