@@ -220,14 +220,29 @@ export default function ScatterRadar({
         <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 20 }}>
           <CartesianGrid strokeDasharray="4 4" stroke="#E5E7EB" strokeOpacity={0.7} />
 
-          {/* 리스크 존 배경 */}
+          <ReferenceArea
+            x1={threshold}
+            x2={100}
+            y1={threshold}
+            y2={100}
+            fill="#20C997"
+            fillOpacity={0.2}
+          />
           <ReferenceArea
             x1={0}
             x2={threshold}
             y1={0}
             y2={threshold}
-            fill="rgba(239,68,68,0.08)"
-            fillOpacity={1}
+            fill="#FCC419"
+            fillOpacity={0.2}
+          />
+          <ReferenceArea
+            x1={threshold}
+            x2={100}
+            y1={0}
+            y2={threshold}
+            fill="#FA5252"
+            fillOpacity={0.2}
           />
 
           <XAxis

@@ -83,8 +83,6 @@ const ChevronRightIcon = () => (
 const navItems: NavItem[] = [
   { label: '1on1 미팅', path: '/leader/meetings', icon: <CalendarIcon /> },
   { label: '멤버 리포트', path: '/leader/reports', icon: <UsersIcon /> },
-  { label: '9Box', path: '/leader/9box', icon: <GridIcon /> },
-  { label: '대시보드', path: '/leader/overview', icon: <BarChartIcon /> },
   { label: '팀 인사이트 대시보드', path: '/leader/dashboard', icon: <BarChartIcon /> },];
 
 const bottomItems = [
