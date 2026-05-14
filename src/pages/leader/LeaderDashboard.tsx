@@ -1,16 +1,17 @@
-import { useState, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ScatterRadar from '@/components/charts/ScatterRadar';
-import BlockerCloud from '@/components/charts/BlockerCloud'; /* */
-import BlockerMap from '@/components/charts/BlockerMap';
-import FeedbackCardList from '@/components/feedback/FeedbackCardList';
-import BlockerSummary from '@/components/feedback/BlockerSummary'
+import BlockerCloud2, { getBlockerRankColor } from '@/components/charts/BlockerCloud2';
+import BlockerActionList from '@/components/blocker/BlockerActionList';
+import BlockerDetailCard from '@/components/blocker/BlockerDetailCard';
+import BlockerSummaryNote from '@/components/blocker/BlockerSummaryNote';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { useRadarData } from '@/features/leader/useRadarData';
 import { useBlockerData } from '@/features/leader/useBlockerData';
 import { useBlockerFeedback } from '@/features/leader/useBlockerFeedback';
 import type { ActionItem, CommunicationBalance } from '@/types/analysis';
+import type { BlockerCloudItem } from '@/types/blocker';
 
 // ── KPI Card ──────────────────────────────────────────────────────────────────
 
@@ -90,11 +91,22 @@ function ActionRow({ item }: { item: ActionItem }) {
 
 type ChartTab = 'radar' | 'blocker';
 
+function getBlockerRank(items: BlockerCloudItem[], index: number) {
+  return items.reduce((rank, item, currentIndex) => {
+    if (currentIndex < index && item.count > items[index].count) {
+      return rank + 1;
+    }
+
+    return rank;
+  }, 1);
+}
+
 export default function LeaderDashboard() {
   const { data: radarData, stats, actions, comms, loading } = useRadarData('team-1');
-  const { points } = useBlockerData('team-1');
+  const { keywords: blockerKeywords } = useBlockerData('team-1');
   const { blockerFeedback } = useBlockerFeedback('team-1');
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
+  const [selectedBlocker, setSelectedBlocker] = useState<BlockerCloudItem | null>(null);
   const [riskThreshold, setRiskThreshold] = useState(0.5);
   // 입력 필드용 별도 문자열 state (편집 중엔 자유롭게, blur 시 확정)
   const [riskInputValue, setRiskInputValue] = useState('0.5');
@@ -117,6 +129,31 @@ export default function LeaderDashboard() {
   // Derived delta display
   const motivationDelta = stats?.motivationDelta ?? 0;
   const turnoverDelta = stats?.turnoverRiskDelta ?? 0;
+  const sortedBlockerKeywords = useMemo(
+    () =>
+      [...blockerKeywords]
+        .sort((a, b) => b.count - a.count || a.keyword.localeCompare(b.keyword))
+        .slice(0, 10),
+    [blockerKeywords],
+  );
+  const actionFeedbackItems = useMemo(() => {
+    if (!blockerFeedback) return [];
+
+    return blockerFeedback.actions.map((action) => {
+      const matchedIndex = sortedBlockerKeywords.findIndex(
+        (item) => action.title.includes(item.keyword) || action.content.includes(item.keyword),
+      );
+
+      if (matchedIndex === -1) return action;
+
+      const rank = getBlockerRank(sortedBlockerKeywords, matchedIndex);
+
+      return {
+        ...action,
+        accent: getBlockerRankColor(rank),
+      };
+    });
+  }, [blockerFeedback, sortedBlockerKeywords]);
 
   return (
     <PageLayout>
@@ -249,7 +286,7 @@ export default function LeaderDashboard() {
                 }`}
                 onClick={() => setActiveTab('blocker')}
               >
-                Blocker Map
+                Blocker Cloud
               </button>
             </div>
 
@@ -315,18 +352,25 @@ export default function LeaderDashboard() {
             )}
 
             {activeTab === 'blocker' && (
-              <div className="flex flex-col gap-4">
-    
-                <div style={{ height: 460 }}>
-                  <BlockerMap points={points} />
+              <div className="flex flex-col gap-7">
+                <div className="py-8">
+                  <BlockerCloud2
+                    items={blockerKeywords}
+                    selectedKeyword={selectedBlocker?.keyword}
+                    onItemClick={setSelectedBlocker}
+                  />
                 </div>
+
                 {blockerFeedback && (
                   <>
+                    {selectedBlocker && <BlockerDetailCard item={selectedBlocker} />}
                     <hr/>
-                    <BlockerSummary summary={blockerFeedback.summary} />
+                    <BlockerSummaryNote summary={blockerFeedback.summary} />
                     <hr/>
-                    Action Feedback 
-                    <FeedbackCardList items={blockerFeedback.actions} />
+                   <div className="text-m font-semibold mb-2">
+                          ⭐ Action Feedback
+                        </div>
+                        <BlockerActionList items={actionFeedbackItems} />
                   </>
                 )}
 
