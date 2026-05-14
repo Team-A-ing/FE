@@ -9,14 +9,8 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: {
-    id: 'u1',
-    name: 'Guest',
-    email: 'guest@readb.io',
-    role: 'leader',
-    avatarInitials: 'G',
-  },
-  token: 'mock-token',
+  user: null,
+  token: localStorage.getItem('token'),
   setAuth: (user, token) => set({ user, token }),
   clearAuth: () => set({ user: null, token: null }),
 }));
