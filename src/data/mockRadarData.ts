@@ -1,4 +1,4 @@
-import type { RadarMember } from '@/types/analysis';
+import type { RadarMember, TeamStats, ActionItem, CommunicationBalance } from '@/types/analysis';
 
 // ScatterRadar 위험도 분류 케이스 전체 커버
 // - 명시적 위험: surfaceScore < 25 (갭 무관)
@@ -22,4 +22,30 @@ export const MOCK_RADAR: RadarMember[] = [
   // ── 보수적 (gap 25~50) ──
   { memberId: 'm7', name: '멤버G', surfaceScore: 55, inferredScore: 30 }, // gap = 25
   { memberId: 'm8', name: '멤버H', surfaceScore: 70, inferredScore: 40 }, // gap = 30
+];
+
+export const MOCK_STATS: TeamStats = {
+  motivationIndex: 78,
+  motivationDelta: 6,
+  turnoverRiskCount: 2,
+  turnoverRiskDelta: -1,
+  meetingCompletionRate: 91,
+  actionCompletionRate: 64,
+  memberTalkRatio: 52,
+  leaderTalkRatio: 48,
+};
+
+export const MOCK_ACTIONS: ActionItem[] = [
+  { id: 'a1', title: '액션 아이템 제목', description: '액션 아이템 설명', priority: 'high' },
+  { id: 'a2', title: '액션 아이템 제목', description: '액션 아이템 설명', priority: 'medium' },
+  { id: 'a3', title: '액션 아이템 제목', description: '액션 아이템 설명', priority: 'low' },
+];
+
+export const MOCK_COMMS: CommunicationBalance[] = [
+  { memberId: 'm1', name: '이 름', memberRatio: 15, leaderRatio: 85, status: '위험' },
+  { memberId: 'm2', name: '이 름', memberRatio: 70, leaderRatio: 30, status: '적정' },
+  { memberId: 'm3', name: '이 름', memberRatio: 55, leaderRatio: 45, status: '관찰' },
+  { memberId: 'm4', name: '이 름', memberRatio: 40, leaderRatio: 60, status: '관찰' },
+  { memberId: 'm5', name: '이 름', memberRatio: 50, leaderRatio: 50, status: '적정' },
+  { memberId: 'm6', name: '이 름', memberRatio: 52, leaderRatio: 48, status: '적정' },
 ];
