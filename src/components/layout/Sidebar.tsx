@@ -82,9 +82,10 @@ const ChevronRightIcon = () => (
 );
 
 const navItems: NavItem[] = [
+  { label: '팀 인사이트 대시보드', path: '/leader/dashboard', icon: <BarChartIcon /> },
   { label: '1on1 미팅', path: '/leader/meetings', icon: <CalendarIcon /> },
-  { label: '멤버 리포트', path: '/leader/reports', icon: <UsersIcon /> },
-  { label: '팀 인사이트 대시보드', path: '/leader/dashboard', icon: <BarChartIcon /> },];
+  { label: '멤버 리포트', path: '/leader/reports', icon: <UsersIcon /> }
+];
 
 const bottomItems = [
   { label: '설정', path: '/settings', icon: <SettingsIcon /> },

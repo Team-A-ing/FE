@@ -19,21 +19,22 @@ export interface ScatterRadarProps {
 
 // ── 위험도 계산 ──────────────────────────────────────────────────────────────
 // 차이 비율: |surfaceScore - inferredScore| / 100
-// 75% 이상 → 위험, 40% 이상 → 주의 요망, 미만 → 안전
 function getRiskLevel(surface: number, inferred: number): {
-  level: '위험' | '주의 요망' | '안전';
+  level: '조용한 위험' | '명시적 위험' | '안전' | '보수적';
   gapRatio: number;
-} {
-  const gapRatio = Math.abs(surface - inferred) / 100;
-  if (gapRatio >= 0.75) return { level: '위험', gapRatio };
-  if (gapRatio >= 0.40) return { level: '주의 요망', gapRatio };
-  return { level: '안전', gapRatio };
+}{
+  const gap = Math.abs(surface - inferred);
+  if (surface < 25)   return { level: '명시적 위험', gapRatio: gap / 100 };
+  if (gap > 50)       return { level: '조용한 위험', gapRatio: gap / 100 };
+  if (gap < 25)       return { level: '안전',        gapRatio: gap / 100 };
+  return                     { level: '보수적',      gapRatio: gap / 100 };
 }
 
-const RISK_BADGE: Record<'위험' | '주의 요망' | '안전', { bg: string; text: string }> = {
-  '위험':    { bg: '#FEE2E2', text: '#EF4444' },
-  '주의 요망': { bg: '#FEF3C7', text: '#D97706' },
+const RISK_BADGE: Record<'조용한 위험' | '명시적 위험' | '안전' | '보수적', { bg: string; text: string }> = {
+  '조용한 위험': { bg: '#fef4e2', text: '#ef9f44' },
+  '명시적 위험': { bg: '#FED7D7', text: '#E53E3E' },
   '안전':    { bg: '#D1FAE5', text: '#059669' },
+  '보수적':  { bg: '#E0E7FF', text: '#86888A' },
 };
 
 // ── 커스텀 툴팁 ──────────────────────────────────────────────────────────────
@@ -152,54 +153,30 @@ interface CustomDotProps {
   cx?: number;
   cy?: number;
   payload?: RadarMember;
-  riskThreshold?: number;
   onMemberClick?: (memberId: string) => void;
 }
 
-function CustomDot({ cx = 0, cy = 0, payload, riskThreshold = 50, onMemberClick }: CustomDotProps) {
+function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
   if (!payload) return null;
 
-  // 리스크 존: surfaceScore < threshold AND inferredScore < threshold
-  const inRiskZone =
-    payload.surfaceScore < riskThreshold && payload.inferredScore < riskThreshold;
+  const { level } = getRiskLevel(payload.surfaceScore, payload.inferredScore);
 
-  const fill   = inRiskZone ? 'rgba(255,146,138,0.60)' : '#5EEAD4';
-  const stroke = inRiskZone ? '#FF928A' : '#14B8A6';
-  const textFill = inRiskZone ? '#9F1239' : '#134E4A';
+  const DOT_STYLE: Record<typeof level, { fill: string; stroke: string; text: string }> = {
+    '명시적 위험': { fill: 'rgba(255,146,138,0.60)', stroke: '#FF928A', text: '#9F1239' },
+    '조용한 위험': { fill: 'rgba(251,191,36,0.50)',  stroke: '#F59E0B', text: '#92400E' },
+    '안전':        { fill: 'rgba(209,250,229,0.80)', stroke: '#69d4b1', text: '#065F46' },
+    '보수적':      { fill: 'rgba(209,213,219,0.70)', stroke: '#9CA3AF', text: '#374151' }, // 회색
+  };
+
+  const { fill, stroke, text: textFill } = DOT_STYLE[level];
 
   return (
     <g
       style={{ cursor: onMemberClick ? 'pointer' : 'default' }}
       onClick={() => onMemberClick?.(payload.memberId)}
     >
-      {/* 리스크 존일 때 외부 그림자 효과 */}
-      {inRiskZone && (
-        <circle
-          cx={cx}
-          cy={cy}
-          r={23}
-          fill="none"
-          stroke="#FA5252"
-          strokeWidth={1.5}
-          strokeOpacity={0.35}
-        />
-      )}
-      <circle
-        cx={cx}
-        cy={cy}
-        r={18}
-        fill={fill}
-        stroke={stroke}
-        strokeWidth={1.5}
-      />
-      <text
-        x={cx}
-        y={cy + 4}
-        textAnchor="middle"
-        fontSize={11}
-        fontWeight={500}
-        fill={textFill}
-      >
+      <circle cx={cx} cy={cy} r={18} fill={fill} stroke={stroke} strokeWidth={1.5} />
+      <text x={cx} y={cy + 4} textAnchor="middle" fontSize={11} fontWeight={500} fill={textFill}>
         {payload.name}
       </text>
     </g>
@@ -286,7 +263,6 @@ export default function ScatterRadar({
             shape={(props: object) => (
               <CustomDot
                 {...(props as CustomDotProps)}
-                riskThreshold={threshold}
                 onMemberClick={onMemberClick}
               />
             )}

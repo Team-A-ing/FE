@@ -1,13 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { RadarMember, TeamStats, ActionItem, CommunicationBalance } from '@/types/analysis';
-
-const MOCK_RADAR: RadarMember[] = [
-  { memberId: 'm1', name: '멤버A', surfaceScore: 5,  inferredScore: 82 },
-  { memberId: 'm2', name: '멤버B', surfaceScore: 35, inferredScore: 12 },
-  { memberId: 'm3', name: '멤버C', surfaceScore: 32, inferredScore: 54 },
-  { memberId: 'm4', name: '멤버D', surfaceScore: 55, inferredScore: 65 },
-  { memberId: 'm5', name: '멤버E', surfaceScore: 85, inferredScore: 68 },
-];
+import { MOCK_RADAR } from '@/data/mockRadarData.ts';  // 오타 수정, .ts 확장자 제거
 
 const MOCK_STATS: TeamStats = {
   motivationIndex: 78,
