@@ -175,8 +175,17 @@ function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
       style={{ cursor: onMemberClick ? 'pointer' : 'default' }}
       onClick={() => onMemberClick?.(payload.memberId)}
     >
-      <circle cx={cx} cy={cy} r={18} fill={fill} stroke={stroke} strokeWidth={1.5} />
-      <text x={cx} y={cy + 4} textAnchor="middle" fontSize={11} fontWeight={500} fill={textFill}>
+      {/* 노드 크기 18 → 8로 축소 */}
+      <circle cx={cx} cy={cy} r={8} fill={fill} stroke={stroke} strokeWidth={1.5} />
+      {/* 이름을 노드 아래로 이동: cy + r + 간격 */}
+      <text
+        x={cx}
+        y={cy + 8 + 12}
+        textAnchor="middle"
+        fontSize={11}
+        fontWeight={500}
+        fill={textFill}
+      >
         {payload.name}
       </text>
     </g>
