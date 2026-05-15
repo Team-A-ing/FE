@@ -303,49 +303,7 @@ export default function LeaderDashboard() {
                 <div style={{ height: 380 }}>
                   <ScatterRadar
                     data={radarData}
-                    riskThreshold={riskThreshold}
                     onMemberClick={(id) => console.log('clicked', id)}
-                  />
-                </div>
-
-                {/* Risk sensitivity slider */}
-                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100">
-                  <span className="text-xs text-gray-400 flex-shrink-0">리스크 민감도</span>
-                  <div className="flex-1 relative h-1.5 bg-gradient-to-r from-red-300 to-red-100 rounded-full">
-                    <input
-                      type="range"
-                      min={0}
-                      max={1}
-                      step={0.1}
-                      value={riskThreshold}
-                      onChange={(e) => {
-                        const v = Math.floor(Number(e.target.value) * 10) / 10;
-                        setRiskThreshold(v);
-                        setRiskInputValue(v.toFixed(1));
-                      }}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      style={{ touchAction: 'none' }}
-                    />
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white border-2 border-red-400 rounded-full shadow pointer-events-none"
-                      style={{ left: `calc(${riskThreshold * 100}% - 6px)` }}
-                    />
-                  </div>
-                  {/* 직접 입력 가능한 숫자 필드 */}
-                  <input
-                    ref={riskInputRef}
-                    type="text"
-                    inputMode="decimal"
-                    value={riskInputValue}
-                    onChange={(e) => setRiskInputValue(e.target.value)}
-                    onBlur={(e) => applyRiskInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        applyRiskInput(riskInputValue);
-                        riskInputRef.current?.blur();
-                      }
-                    }}
-                    className="w-10 text-xs text-center text-gray-700 border border-gray-200 rounded-md py-0.5 focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200"
                   />
                 </div>
               </>
