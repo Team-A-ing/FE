@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useRecorder } from "@/features/meeting/useRecorder";
@@ -21,6 +21,12 @@ export default function MeetingDetailPage() {
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
   const [localStatus, setLocalStatus] = useState<LocalStatus>("pending");
+
+  useEffect(() => {
+    if (meeting?.status === "ANALYZING" || meeting?.status === "RECORDING") {
+      setLocalStatus(meeting.status.toLowerCase() as LocalStatus);
+    }
+  }, [meeting?.status]);
 
   const handleStartRecording = useCallback(async () => {
     await recorder.start();
@@ -91,6 +97,12 @@ export default function MeetingDetailPage() {
               >
                 1on1 미팅 시작하기
               </button>
+            </div>
+          )}
+          {localStatus === "recording" && (
+            <div className="border-t border-gray-200 px-8 py-6 flex flex-col items-center gap-2">
+              <span className="text-sm font-medium text-[#5F74FA]">🎙 녹음 중입니다</span>
+              <span className="text-xs text-gray-400">아래 플로팅 바에서 미팅을 종료할 수 있습니다.</span>
             </div>
           )}
         </div>
