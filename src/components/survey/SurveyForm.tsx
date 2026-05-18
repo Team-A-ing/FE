@@ -12,7 +12,7 @@ const energyOptions = [
 ];
 const desiredRoleOptions = ['그냥 들어주기', '방향성 코칭', '의사결정 도움', '리소스 확보'];
 
-interface SurveyFormProps {
+export interface SurveyFormProps {
   leaderName: string;
   scheduledAt: string;
   meetingId: number;

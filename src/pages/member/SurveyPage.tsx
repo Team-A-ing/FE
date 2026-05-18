@@ -12,8 +12,8 @@ export default function SurveyPage() {
       <main className="min-h-[calc(100vh-3.5rem)] bg-[#F7F8FA] px-5 py-8 text-gray-900">
         <SurveyForm
           leaderName="이준혁"
-          scheduledAt={new Date().toISOString()}
-          meetingId={Number(meetingId ?? '0')}
+          scheduledAt="2026-04-29T09:00:00.000Z"
+          meetingId={meetingId ? (Number.isNaN(Number(meetingId)) ? 0 : Number(meetingId)) : 0}
         />
       </main>
     </PageLayout>
