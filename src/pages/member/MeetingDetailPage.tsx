@@ -82,9 +82,7 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
         </span>
         <span>{meeting.leaderName} (리더)</span>
         <span className="text-gray-300">↔</span>
-        <span className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-white text-xs">
-          나
-        </span>
+        <span className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-white text-xs" />
         <span>나</span>
       </div>
     </div>
