@@ -33,7 +33,7 @@ export interface MeetingDetail {
   round: number;
   scheduledAt: string;          // ISO 8601, 예: "2026-05-08T14:00:00"
   durationSec: number | null;
-  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
+  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED"; // 백엔드 API 응답값 (대문자)
   leaderName: string;
   memberName: string;
 }
