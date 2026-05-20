@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import apiClient from '@/api/client';
 import { useAuthStore } from '@/stores/authStore';
 import type { User, UserRole } from '@/types/user';
@@ -84,8 +85,10 @@ export function useSignup() {
       }
 
       return null;
-    } catch {
-      const message = '회원 가입에 실패했습니다.';
+    } catch (err) {
+      const serverMessage =
+        axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      const message = serverMessage || '회원 가입에 실패했습니다.';
       setError(message);
       throw new Error(message);
     } finally {
