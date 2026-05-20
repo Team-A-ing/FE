@@ -1,20 +1,20 @@
 import { useMemo, useState, type MouseEvent } from 'react';
-import type { BlockerCloudColor, BlockerCloudItem } from '@/types/blocker';
+import type { BlockerPyramidColor, BlockerPyramidItem } from '@/types/blocker';
 
-export interface BlockerCloud2Props {
-  items: BlockerCloudItem[];
+export interface BlockerPyramidProps {
+  items: BlockerPyramidItem[];
   className?: string;
   selectedKeyword?: string | null;
-  onItemClick?: (item: BlockerCloudItem) => void;
+  onItemClick?: (item: BlockerPyramidItem) => void;
 }
 
 type TooltipState = {
-  item: BlockerCloudItem;
+  item: BlockerPyramidItem;
   x: number;
   y: number;
 } | null;
 
-const PALETTE: BlockerCloudColor[] = [
+const PALETTE: BlockerPyramidColor[] = [
   { bg: '#FFECEF', text: '#FA5252', border: '#F8B4C0' },
   { bg: '#FEFCE8', text: '#eb9925', border: '#FDE68A' },
   { bg: '#EAF5FF', text: '#2563EB', border: '#BBD7FF' },
@@ -32,7 +32,7 @@ function getWeight(count: number, min: number, max: number) {
   return (count - min) / (max - min);
 }
 
-function getRank(sortedItems: BlockerCloudItem[], index: number) {
+function getRank(sortedItems: BlockerPyramidItem[], index: number) {
   return sortedItems.reduce((rank, item, currentIndex) => {
     if (currentIndex < index && item.count > sortedItems[index].count) {
       return rank + 1;
@@ -50,11 +50,11 @@ export function getBlockerRankColor(rank: number) {
 }
 
 function getPillStyle(
-  item: BlockerCloudItem,
+  item: BlockerPyramidItem,
   index: number,
   min: number,
   max: number,
-  sortedItems: BlockerCloudItem[],
+  sortedItems: BlockerPyramidItem[],
 ) {
   const weight = getWeight(item.count, min, max);
   const color = getBlockerRankColor(getRank(sortedItems, index));
@@ -71,8 +71,8 @@ function getPillStyle(
   };
 }
 
-function arrangeRows(items: BlockerCloudItem[]) {
-  const rows: BlockerCloudItem[][] = [];
+function arrangeRows(items: BlockerPyramidItem[]) {
+  const rows: BlockerPyramidItem[][] = [];
   let cursor = 0;
 
   TAG_ROW_PATTERN.forEach((size) => {
@@ -84,12 +84,12 @@ function arrangeRows(items: BlockerCloudItem[]) {
   return rows;
 }
 
-export default function BlockerCloud2({
+export default function BlockerPyramid({
   items,
   className = '',
   selectedKeyword,
   onItemClick,
-}: BlockerCloud2Props) {
+}: BlockerPyramidProps) {
   const [tooltip, setTooltip] = useState<TooltipState>(null);
 
   const sortedItems = useMemo(
@@ -101,7 +101,7 @@ export default function BlockerCloud2({
   const min = sortedItems[sortedItems.length - 1]?.count ?? max;
   const bubbleRows = useMemo(() => arrangeRows(sortedItems), [sortedItems]);
 
-  const showTooltip = (event: MouseEvent<HTMLElement>, item: BlockerCloudItem) => {
+  const showTooltip = (event: MouseEvent<HTMLElement>, item: BlockerPyramidItem) => {
     const bounds = event.currentTarget.getBoundingClientRect();
     setTooltip({
       item,

@@ -1,18 +1,18 @@
 import FeedbackCard, { type FeedbackCardProps } from '@/components/feedback/FeedbackCard';
 
-export interface BlockerActionFeedbackItem {
+export interface ActionFeedbackItem {
   severity: 'ERROR' | 'WARNING' | 'INFO' | 'SUCCESS';
   title: string;
   dataSummary: string;
   actionGuide: string;
 }
 
-interface BlockerActionListProps {
-  items: BlockerActionFeedbackItem[];
+interface ActionFeedbackListProps {
+  items: ActionFeedbackItem[];
 }
 
 const severityToFeedbackType: Record<
-  BlockerActionFeedbackItem['severity'],
+  ActionFeedbackItem['severity'],
   NonNullable<FeedbackCardProps['type']>
 > = {
   ERROR: 'error',
@@ -21,12 +21,12 @@ const severityToFeedbackType: Record<
   SUCCESS: 'success',
 };
 
-export const blockerActionFeedbackStyles = {
+export const actionFeedbackStyles = {
   actionGuide: 'text-sm font-semibold text-gray-800',
   dataSummary: 'text-xs font-normal text-gray-500',
 } as const;
 
-export default function BlockerActionList({ items }: BlockerActionListProps) {
+export default function ActionFeedbackList({ items }: ActionFeedbackListProps) {
   return (
     <div className="flex flex-col gap-3">
       {items.map((item, index) => (
@@ -35,8 +35,8 @@ export default function BlockerActionList({ items }: BlockerActionListProps) {
           title={item.title}
           content={
             <div className="space-y-1">
-              <p className={blockerActionFeedbackStyles.actionGuide}>{item.actionGuide}</p>
-              <p className={blockerActionFeedbackStyles.dataSummary}>{item.dataSummary}</p>
+              <p className={actionFeedbackStyles.actionGuide}>{item.actionGuide}</p>
+              <p className={actionFeedbackStyles.dataSummary}>{item.dataSummary}</p>
             </div>
           }
           type={severityToFeedbackType[item.severity]}
