@@ -57,7 +57,9 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
   const [selectedDate, setSelectedDate] = useState<string>(getDefaultDate());
   const [selectedTime, setSelectedTime] = useState<string>(getDefaultTime());
   const [viewMonth, setViewMonth] = useState(() => new Date());
+  const [title, setTitle] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -92,11 +94,12 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
     return `${y}-${m}-${String(d).padStart(2, "0")}`;
   };
 
-  const canCreate = selected && !isSubmitting;
+  const canCreate = selected && title.trim() && !isSubmitting;
 
   const handleCreate = async () => {
     if (!selected) return;
     setIsSubmitting(true);
+    setCreateError(null);
     try {
       if (import.meta.env.VITE_USE_MOCK === 'true') {
         onCreated();
@@ -105,10 +108,17 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
       }
       const res = await apiClient.post<ApiResponse<{ meetingId: number }>>(
         "/v1/meetings",
-        { memberId: selected.id, scheduledAt: `${selectedDate}T${selectedTime}:00` }
+        {
+          teamId: Number(user?.teamId),
+          memberId: selected.id,
+          title: title.trim(),
+          scheduledAt: `${selectedDate}T${selectedTime}:00`,
+        }
       );
       onCreated();
       navigate(`/leader/meeting/${res.data.data.meetingId}`);
+    } catch {
+      setCreateError("미팅 생성에 실패했습니다. 다시 시도해주세요.");
     } finally {
       setIsSubmitting(false);
     }
@@ -124,6 +134,16 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl">
             &times;
           </button>
+        </div>
+
+        <div className="mb-6">
+          <p className="font-semibold mb-2">미팅 제목</p>
+          <input
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#4E62E6]"
+            placeholder="미팅 제목을 입력해주세요."
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
         </div>
 
         <div className="grid grid-cols-2 gap-8">
@@ -229,7 +249,10 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 mt-8">
+        {createError && (
+          <p className="text-sm text-red-500 text-right mt-4">{createError}</p>
+        )}
+        <div className="flex justify-end gap-3 mt-2">
           <button
             onClick={onClose}
             className="px-6 py-2.5 rounded-lg border border-gray-200 text-sm hover:bg-gray-50"

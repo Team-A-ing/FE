@@ -84,7 +84,7 @@ export default function SignupPage() {
         throw new Error('Role is required');
       }
 
-      await signup({
+      const authUser = await signup({
         name: form.name.trim(),
         email: form.email.trim(),
         password: form.password,
@@ -92,9 +92,13 @@ export default function SignupPage() {
         jobTitle: form.jobTitle,
       });
 
-      setMessage('가입이 성공하였습니다!');
-      setMessageType('success');
-      window.setTimeout(() => navigate('/login'), 1000);
+      if (authUser) {
+        navigate(authUser.role === 'leader' ? '/leader/team-setup' : '/member/team-join');
+      } else {
+        setMessage('가입이 성공하였습니다!');
+        setMessageType('success');
+        window.setTimeout(() => navigate('/login'), 1000);
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : '회원 가입에 실패했습니다.';
       setMessage(message);

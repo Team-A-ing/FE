@@ -73,6 +73,14 @@ Meeting status progression: `pending → recording → analyzing → completed`.
 /leader/reports, /leader/9box, /leader/overview, /settings, /invite → all stub to LeaderDashboard
 ```
 
+## API URL Convention
+
+- Omit the `/api` prefix when writing API endpoint paths. The base URL already includes it via `VITE_API_BASE_URL`. Write `/meetings/upload`, not `/api/meetings/upload`.
+
+## Workflow
+
+- All output produced by Claude must be reviewed by another AI agent before being considered final.
+
 ## Shared File Rules
 
 - `types/` and `constants/` — additions only; renames/deletes require team notification.

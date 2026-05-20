@@ -1,7 +1,7 @@
-import type { BlockerCloudItem } from '@/types/blocker';
+import type { BlockerPyramidItem } from '@/types/blocker';
 
 interface BlockerDetailCardProps {
-  item: BlockerCloudItem;
+  item: BlockerPyramidItem;
 }
 
 export default function BlockerDetailCard({ item }: BlockerDetailCardProps) {

@@ -46,7 +46,7 @@ export default function StartMeetingModal({ isOpen, onClose, onStart }: Props) {
             onChange={(e) => setConsent(e.target.checked)}
             className="accent-[#5F74FA] w-4 h-4"
           />
-          <span className="text-sm text-gray-600">상대방의 녹음 동의를 구했어요. ℹ️</span>
+          <span className="text-sm text-gray-600">상대방의 녹음 동의를 구했어요.</span>
         </label>
 
         <div className="flex justify-end gap-3">
