@@ -65,7 +65,7 @@ export function useLogin() {
         return authUser;
       }
 
-      const response = await apiClient.post<LoginApiResponse>('/api/v1/auth/login', {
+      const response = await apiClient.post<LoginApiResponse>('/v1/auth/login', {
         email: email.trim(),
         password,
       });
