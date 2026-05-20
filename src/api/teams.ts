@@ -26,13 +26,13 @@ export interface JoinTeamResult {
 }
 
 export async function createTeam(name: string): Promise<CreateTeamResult> {
-  const res = await apiClient.post<ApiResponse<CreateTeamApiResponse>>('/api/v1/teams', { name });
+  const res = await apiClient.post<ApiResponse<CreateTeamApiResponse>>('/v1/teams', { name });
   const d = res.data.data;
   return { id: String(d.id), name: d.name, inviteCode: d.inviteCode };
 }
 
 export async function joinTeam(inviteCode: string): Promise<JoinTeamResult> {
-  const res = await apiClient.post<ApiResponse<JoinTeamApiResponse>>('/api/v1/teams/join', { inviteCode });
+  const res = await apiClient.post<ApiResponse<JoinTeamApiResponse>>('/v1/teams/join', { inviteCode });
   const d = res.data.data;
   return { teamId: String(d.teamId), teamName: d.teamName };
 }
