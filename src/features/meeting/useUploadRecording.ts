@@ -13,6 +13,16 @@ export function useUploadRecording() {
       setError(msg);
       throw new Error(msg);
     }
+    if (import.meta.env.VITE_USE_MOCK === 'true' && meetingId.startsWith('mock-')) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `recording-${meetingId}-${durationSec}s.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      await new Promise((r) => setTimeout(r, 1500));
+      return;
+    }
     setIsUploading(true);
     setError(null);
     try {
