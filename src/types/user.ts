@@ -5,5 +5,7 @@ export interface User {
   email: string
   name: string
   role: UserRole
+  jobTitle?: string
   teamId: string
+  teamName?: string
 }
