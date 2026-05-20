@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { BlockerPyramidItem } from '@/types/blocker';
+import type { BlockerCloudItem } from '@/types/blocker';
 
 interface BlockerPoint {
   text: string;
@@ -17,7 +17,7 @@ const MOCK_BLOCKERS: BlockerPoint[] = [
   { text: '팀 협업', x: 30, y: 50 },
 ];
 
-const MOCK_BLOCKER_KEYWORDS: BlockerPyramidItem[] = [
+const MOCK_BLOCKER_KEYWORDS: BlockerCloudItem[] = [
   { keyword: '업무 과부하', count: 18, mentionedBy: 7, mentionedMembers: ['김민준', '이서연', '박지훈', '최유진', '정하늘', '오세민', '한지우'] },
   { keyword: '우선순위 혼선', count: 14, mentionedBy: 6, mentionedMembers: ['김민준', '박지훈', '최유진', '문도윤', '정하늘', '윤채원'] },
   { keyword: '커뮤니케이션 부족', count: 12, mentionedBy: 5, mentionedMembers: ['이서연', '최유진', '한지우', '문도윤', '윤채원'] },
@@ -32,7 +32,7 @@ const MOCK_BLOCKER_KEYWORDS: BlockerPyramidItem[] = [
 
 export function useBlockerData(_teamId?: string) {
   const [points, setPoints] = useState<BlockerPoint[]>([]);
-  const [keywords, setKeywords] = useState<BlockerPyramidItem[]>([]);
+  const [keywords, setKeywords] = useState<BlockerCloudItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
