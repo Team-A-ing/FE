@@ -200,7 +200,10 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
 
   return (
     <div className="px-8 py-4 border-b border-gray-200">
-      <h1 className="text-xl font-bold">{dateStr}</h1>
+      <div className="flex items-baseline gap-3">
+        <h1 className="text-xl font-bold">{meeting.memberName}님과의 {meeting.round}회차 1on1</h1>
+        <span className="text-sm text-gray-400">{dateStr}</span>
+      </div>
       <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
         <span className="w-6 h-6 rounded-full bg-[#5F74FA] flex items-center justify-center text-white text-xs">
           {meeting.leaderName[0]}
