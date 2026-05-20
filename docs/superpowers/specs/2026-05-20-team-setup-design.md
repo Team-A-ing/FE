@@ -124,7 +124,7 @@ joinTeam(inviteCode: string): Promise<JoinTeamResult>
 |------|-----------|
 | `src/app/router.tsx` | `RequiresTeam` 래퍼 적용, 2개 신규 라우트 추가 |
 | `src/pages/auth/LoginPage.tsx` | 로그인 후 `teamId === ''` 체크 → 팀 셋업 페이지 리다이렉트 |
-| `src/pages/auth/SignupPage.tsx` | 동일 (회원가입 응답도 `teamId: null`) |
+| `src/pages/auth/SignupPage.tsx` | 회원가입 성공 후 `authUser` 반환값을 사용해 `/login` 리다이렉트 대신 팀 셋업 페이지로 직접 이동. (`useSignup`은 이미 auth state를 설정하므로 재로그인 불필요) |
 
 ---
 
