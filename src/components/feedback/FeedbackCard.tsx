@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react';
+
 export interface FeedbackCardProps {
   title: string;
-  content: string;
+  content: ReactNode;
   type?: 'error' | 'warning' | 'info' | 'success';
 }
 
@@ -29,7 +31,7 @@ export function FeedbackCard({ title, content, type = 'info' }: FeedbackCardProp
   return (
     <div className={`rounded-xl border p-4 ${styles.card}`}>
       <h4 className={`mb-1 text-sm font-medium ${styles.title}`}>{title}</h4>
-      <p className="whitespace-pre-line text-sm text-gray-600">{content}</p>
+      <div className="whitespace-pre-line text-sm text-gray-600">{content}</div>
     </div>
   );
 }

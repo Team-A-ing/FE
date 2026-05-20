@@ -6,10 +6,12 @@ import type { MeetingData } from "@/types/meeting";
 import { ROUTES } from "@/constants/routes";
 
 const statusMap: Record<MeetingData["status"], { label: string; badge: string }> = {
-  pending: { label: "대기 중", badge: "bg-yellow-100 text-yellow-700" },
-  recording: { label: "녹음 중", badge: "bg-blue-100 text-blue-700" },
-  analyzing: { label: "분석 중", badge: "bg-purple-100 text-purple-700" },
-  completed: { label: "완료", badge: "bg-emerald-100 text-emerald-700" },
+  pending:   { label: "대기 중",  badge: "bg-yellow-100 text-yellow-700" },
+  recording: { label: "녹음 중",  badge: "bg-blue-100 text-blue-700" },
+  uploading: { label: "업로드 중", badge: "bg-orange-100 text-orange-700" },
+  analyzing: { label: "분석 중",  badge: "bg-purple-100 text-purple-700" },
+  completed: { label: "완료",     badge: "bg-emerald-100 text-emerald-700" },
+  error:     { label: "오류",     badge: "bg-red-100 text-red-700" },
 };
 
 const actionItems = [
