@@ -5,8 +5,6 @@ import type { User, UserRole } from '@/types/user';
 
 export type SignupRole = 'LEADER' | 'MEMBER';
 
-const USE_MOCK_SIGNUP = false;
-
 interface SignupRequest {
   name: string;
   email: string;
@@ -64,7 +62,7 @@ export function useSignup() {
 
       console.log('signup payload', signupPayload);
 
-      if (USE_MOCK_SIGNUP) {
+      if (import.meta.env.VITE_USE_MOCK === 'true') {
         return null;
       }
 

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { fetchMeetingDetail } from '@/api/meetings';
 import type { MeetingDetail } from '@/types/meeting';
-
+// 테스트용 데이터(백엔드 연결 시 삭제)
 const MOCK_MEETING: MeetingDetail = {
   meetingId: 0,
   round: 1,
@@ -22,6 +22,7 @@ export function useMeetingDetail(meetingId: string | undefined) {
       setLoading(false);
       return;
     }
+    // 테스트 조건, 백엔드 정상 연결 시 삭제
     if (import.meta.env.VITE_USE_MOCK === 'true' && meetingId.startsWith('mock-')) {
       setMeeting(MOCK_MEETING);
       setLoading(false);

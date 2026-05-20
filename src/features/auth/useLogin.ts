@@ -5,8 +5,6 @@ import type { User, UserRole } from '@/types/user';
 
 type ApiRole = 'LEADER' | 'MEMBER';
 
-const USE_MOCK_LOGIN = true;
-
 interface LoginRequest {
   email: string;
   password: string;
@@ -50,7 +48,7 @@ export function useLogin() {
     setError('');
 
     try {
-      if (USE_MOCK_LOGIN) {
+      if (import.meta.env.VITE_USE_MOCK === 'true') {
         const authUser: User = {
           id: '1',
           email: email.trim(),
