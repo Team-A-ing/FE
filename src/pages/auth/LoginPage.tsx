@@ -22,7 +22,11 @@ export default function LoginPage() {
 
     try {
       const user = await login({ email, password });
-      navigate(user.role === 'leader' ? '/leader/dashboard' : '/member/dashboard');
+      if (user.teamId === '') {
+        navigate(user.role === 'leader' ? '/leader/team-setup' : '/member/team-join');
+      } else {
+        navigate(user.role === 'leader' ? '/leader/dashboard' : '/member/dashboard');
+      }
     } catch {
       setErrorMessage('이메일 또는 비밀번호가 올바르지 않습니다');
     }

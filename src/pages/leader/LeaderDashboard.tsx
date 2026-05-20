@@ -1,37 +1,17 @@
-import { useMemo, useState, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import ScatterRadar from '@/components/charts/ScatterRadar';
-import BlockerCloud2, { getBlockerRankColor } from '@/components/charts/BlockerCloud2';
-import BlockerActionList from '@/components/blocker/BlockerActionList';
-import BlockerDetailCard from '@/components/blocker/BlockerDetailCard';
+import BlockerPyramid from '@/components/charts/BlockerPyramid';
+import ActionFeedbackList from '@/components/feedback/ActionFeedbackList';
+import TeamHealthScoreCard from '@/components/feedback/TeamHealthScoreCard';
 import BlockerSummaryNote from '@/components/blocker/BlockerSummaryNote';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { useRadarData } from '@/features/leader/useRadarData';
 import { useBlockerData } from '@/features/leader/useBlockerData';
 import { useBlockerFeedback } from '@/features/leader/useBlockerFeedback';
-import type { ActionItem, CommunicationBalance } from '@/types/analysis';
-import type { BlockerCloudItem } from '@/types/blocker';
-
-// ── KPI Card ──────────────────────────────────────────────────────────────────
-
-interface KpiCardProps {
-  title: string;
-  value: React.ReactNode;
-  sub?: React.ReactNode;
-  extra?: React.ReactNode;
-}
-
-function KpiCard({ title, value, sub, extra }: KpiCardProps) {
-  return (
-    <Card className="p-4 flex-1 min-w-0">
-      <p className="text-xs text-gray-400 mb-2 font-medium">{title}</p>
-      <div className="text-2xl font-bold text-gray-900 leading-none mb-1">{value}</div>
-      {sub && <div className="text-xs text-gray-400 mt-1">{sub}</div>}
-      {extra && <div className="mt-2">{extra}</div>}
-    </Card>
-  );
-}
+import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
+import type { CommunicationBalance } from '@/types/analysis';
 
 // ── Talk Ratio Bar ─────────────────────────────────────────────────────────────
 
@@ -67,93 +47,21 @@ function CommRow({ item }: { item: CommunicationBalance }) {
   );
 }
 
-// ── Action Priority Dot ───────────────────────────────────────────────────────
-
-const priorityColor: Record<ActionItem['priority'], string> = {
-  high: 'bg-red-400',
-  medium: 'bg-yellow-400',
-  low: 'bg-green-400',
-};
-
-function ActionRow({ item }: { item: ActionItem }) {
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-      <span className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${priorityColor[item.priority]}`} />
-      <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-800">{item.title}</p>
-        <p className="text-xs text-gray-400 mt-0.5">{item.description}</p>
-      </div>
-    </div>
-  );
-}
-
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 type ChartTab = 'radar' | 'blocker';
 
-function getBlockerRank(items: BlockerCloudItem[], index: number) {
-  return items.reduce((rank, item, currentIndex) => {
-    if (currentIndex < index && item.count > items[index].count) {
-      return rank + 1;
-    }
-
-    return rank;
-  }, 1);
-}
-
 export default function LeaderDashboard() {
-  const { data: radarData, stats, actions, comms, loading } = useRadarData('team-1');
+  const { data: radarData, comms } = useRadarData('team-1');
   const { keywords: blockerKeywords } = useBlockerData('team-1');
   const { blockerFeedback } = useBlockerFeedback('team-1');
+  const { data: teamHealthScore } = useTeamHealthScore('team-1');
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
-  const [selectedBlocker, setSelectedBlocker] = useState<BlockerCloudItem | null>(null);
-  const [riskThreshold, setRiskThreshold] = useState(0.5);
-  // 입력 필드용 별도 문자열 state (편집 중엔 자유롭게, blur 시 확정)
-  const [riskInputValue, setRiskInputValue] = useState('0.5');
-  const riskInputRef = useRef<HTMLInputElement>(null);
-
-
-  // 0.1 단위로 내림 처리
-  const applyRiskInput = (raw: string) => {
-    const num = parseFloat(raw);
-    if (isNaN(num)) {
-      setRiskInputValue(riskThreshold.toFixed(1));
-      return;
-    }
-    const clamped = Math.min(1, Math.max(0, num));
-    const floored = Math.floor(clamped * 10) / 10;
-    setRiskThreshold(floored);
-    setRiskInputValue(floored.toFixed(1));
-  };
-
-  // Derived delta display
-  const motivationDelta = stats?.motivationDelta ?? 0;
-  const turnoverDelta = stats?.turnoverRiskDelta ?? 0;
-  const sortedBlockerKeywords = useMemo(
-    () =>
-      [...blockerKeywords]
-        .sort((a, b) => b.count - a.count || a.keyword.localeCompare(b.keyword))
-        .slice(0, 10),
-    [blockerKeywords],
-  );
   const actionFeedbackItems = useMemo(() => {
     if (!blockerFeedback) return [];
 
-    return blockerFeedback.actions.map((action) => {
-      const matchedIndex = sortedBlockerKeywords.findIndex(
-        (item) => action.title.includes(item.keyword) || action.content.includes(item.keyword),
-      );
-
-      if (matchedIndex === -1) return action;
-
-      const rank = getBlockerRank(sortedBlockerKeywords, matchedIndex);
-
-      return {
-        ...action,
-        accent: getBlockerRankColor(rank),
-      };
-    });
-  }, [blockerFeedback, sortedBlockerKeywords]);
+    return blockerFeedback.actionPrescriptions;
+  }, [blockerFeedback]);
 
   return (
     <PageLayout>
@@ -161,111 +69,13 @@ export default function LeaderDashboard() {
         {/* Page Title */}
         <h1 className="text-xl font-bold text-gray-900 mb-5">팀 인사이트 대시보드</h1>
 
-        {/* ── KPI Row ── */}
-        <div className="flex gap-3 mb-5">
-          {/* 팀 동기 지수 */}
-          <KpiCard
-            title="팀 동기 지수"
-            value={
-              <span>
-                <span className="text-blue-500">{stats?.motivationIndex ?? '--'}</span>
-                <span className="text-base font-normal text-gray-400">/100</span>
-              </span>
-            }
-            sub={
-              stats ? (
-                <span className={motivationDelta >= 0 ? 'text-teal-500' : 'text-red-400'}>
-                  전분기 대비 {motivationDelta >= 0 ? '+' : ''}{motivationDelta}{' '}
-                  {motivationDelta >= 0 ? '▲' : '▼'}
-                </span>
-              ) : undefined
-            }
-          />
-
-          {/* 이탈 리스크 인원 */}
-          <KpiCard
-            title="이탈 리스크 인원"
-            value={
-              <span>
-                <span className="text-red-500">{stats?.turnoverRiskCount ?? '--'}</span>
-                <span className="text-base font-normal text-gray-500">명</span>
-              </span>
-            }
-            sub={
-              stats ? (
-                <span className={turnoverDelta <= 0 ? 'text-teal-500' : 'text-red-400'}>
-                  전분기 대비 {turnoverDelta > 0 ? '+' : ''}{turnoverDelta}{' '}
-                  {turnoverDelta <= 0 ? '▼' : '▲'}
-                </span>
-              ) : undefined
-            }
-          />
-
-          {/* 1on1 완료율 */}
-          <KpiCard
-            title="1on1 완료율"
-            value={
-              <span className="text-teal-500">
-                {stats?.meetingCompletionRate ?? '--'}%
-              </span>
-            }
-            sub="이번 달 기준"
-          />
-
-          {/* 액션 이행률 */}
-          <KpiCard
-            title="액션 이행률"
-            value={
-              <span className="text-orange-400">
-                {stats?.actionCompletionRate ?? '--'}%
-              </span>
-            }
-            sub="이번 달 기준"
-          />
-
-          {/* 팀 평균 발화 비율 */}
-          <KpiCard
-            title="팀 평균 발화 비율"
-            value={
-              loading ? (
-                <span className="text-gray-300">--</span>
-              ) : (
-                <div className="flex flex-col gap-1.5 mt-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 w-6">팀원</span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-teal-400 rounded-full"
-                        style={{ width: `${stats?.memberTalkRatio ?? 0}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-500 w-7 text-right">
-                      {stats?.memberTalkRatio}%
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-500 w-6">리더</span>
-                    <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-orange-300 rounded-full"
-                        style={{ width: `${stats?.leaderTalkRatio ?? 0}%` }}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-500 w-7 text-right">
-                      {stats?.leaderTalkRatio}%
-                    </span>
-                  </div>
-                  <p className="text-xs text-teal-500 mt-0.5">팀 발화 비율 적정</p>
-                </div>
-              )
-            }
-          />
-        </div>
+        {teamHealthScore && <TeamHealthScoreCard data={teamHealthScore} />}
 
         {/* ── Main Content Row ── */}
         <div className="flex gap-4">
-          {/* Left: Chart Card */}
-          <Card className="flex-1 min-w-0 p-4">
+          <div className="flex flex-1 min-w-0 flex-col gap-4">
+          {/* Chart Card */}
+          <Card className="p-4">
             {/* Tab switcher */}
             <div className="flex gap-0 mb-4 bg-gray-100 rounded-lg p-1 w-fit">
               <button
@@ -286,7 +96,7 @@ export default function LeaderDashboard() {
                 }`}
                 onClick={() => setActiveTab('blocker')}
               >
-                Blocker Cloud
+                Blocker Pyramid
               </button>
             </div>
 
@@ -300,7 +110,7 @@ export default function LeaderDashboard() {
                 </div>
 
                 {/* Scatter Chart */}
-                <div style={{ height: 380 }}>
+                <div style={{ height: 300 }}>
                   <ScatterRadar
                     data={radarData}
                     onMemberClick={(id) => console.log('clicked', id)}
@@ -310,26 +120,15 @@ export default function LeaderDashboard() {
             )}
 
             {activeTab === 'blocker' && (
-              <div className="flex flex-col gap-7">
-                <div className="py-8">
-                  <BlockerCloud2
+              <div className="flex flex-col gap-5">
+                <div className="py-4">
+                  <BlockerPyramid
                     items={blockerKeywords}
-                    selectedKeyword={selectedBlocker?.keyword}
-                    onItemClick={setSelectedBlocker}
                   />
                 </div>
 
                 {blockerFeedback && (
-                  <>
-                    {selectedBlocker && <BlockerDetailCard item={selectedBlocker} />}
-                    <hr/>
-                    <BlockerSummaryNote summary={blockerFeedback.summary} />
-                    <hr/>
-                   <div className="text-m font-semibold mb-2">
-                          ⭐ Action Feedback
-                        </div>
-                        <BlockerActionList items={actionFeedbackItems} />
-                  </>
+                  <BlockerSummaryNote summary={blockerFeedback.summary} />
                 )}
 
               </div>
@@ -337,20 +136,16 @@ export default function LeaderDashboard() {
             )}
           </Card>
 
-          {/* Right: Action Items + Communication Balance */}
-          <div className="w-[260px] flex-shrink-0 flex flex-col gap-4">
-            {/* Action Items */}
-            <Card className="p-4 flex-1">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                리더 우선 액션 아이템
-              </p>
-              <div className="flex flex-col gap-2">
-                {actions.map((item) => (
-                  <ActionRow key={item.id} item={item} />
-                ))}
-              </div>
-            </Card>
+          <Card className="p-4">
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Action Feedback
+            </p>
+            <ActionFeedbackList items={actionFeedbackItems} />
+          </Card>
+          </div>
 
+          {/* Right: Communication Balance */}
+          <div className="w-[260px] flex-shrink-0 flex flex-col gap-4">
             {/* Communication Balance */}
             <Card className="p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">

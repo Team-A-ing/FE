@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { ANALYSIS_STEPS, WITTY_COPIES } from "./loadingCopies";
+import { useMeetingStatus } from "@/features/meeting/useMeetingStatus";
 import type { AnalysisStep } from "@/types/meeting";
 
 interface Props {
   role: "leader" | "member";
   recordingDuration?: number;
+  meetingId: string;
 }
 
 function formatDuration(s?: number) {
@@ -15,25 +17,47 @@ function formatDuration(s?: number) {
   return `${h}:${m}:${sec}`;
 }
 
-export default function AnalysisLoading({ role, recordingDuration }: Props) {
-  const [step, setStep] = useState<AnalysisStep>(0);
-  const [progress, setProgress] = useState(0);
+export default function AnalysisLoading({ role, recordingDuration, meetingId }: Props) {
+  const navigate = useNavigate();
+  const { status, error } = useMeetingStatus(meetingId, true);
   const copies = WITTY_COPIES[role];
 
-  useEffect(() => {
-    const iv = setInterval(() => {
-      setProgress((p) => {
-        if (p >= 100) { clearInterval(iv); return 100; }
-        const next = p + 0.5;
-        setStep(Math.min(3, Math.floor(next / 25)) as AnalysisStep);
-        return next;
-      });
-    }, 100);
-    return () => clearInterval(iv);
-  }, []);
+  const progress = status?.progress ?? 0;
+  const displayStep = Math.min(3, Math.max(0, (status?.stepNumber ?? 1) - 1)) as AnalysisStep;
+  const isCompleted = status?.step === 'COMPLETED';
 
   const r = 42;
   const circ = 2 * Math.PI * r;
+
+  if (error) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
+        <p className="text-base font-semibold text-red-500">{error}</p>
+        <button
+          onClick={() => navigate('/leader/meetings')}
+          className="px-5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
+        >
+          목록으로 돌아가기
+        </button>
+      </div>
+    );
+  }
+
+  if (isCompleted) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
+        <p className="text-lg font-bold text-[#5F74FA]">분석이 완료되었습니다! 🎉</p>
+        <button
+          onClick={() => navigate('/leader/meetings')}
+          className="px-5 py-2.5 rounded-lg bg-[#5F74FA] text-sm text-white font-medium hover:bg-[#4E62E6]"
+        >
+          결과 보러 가기
+        </button>
+      </div>
+    );
+  }
+
+  const wittyMessage = status?.wittyMessage?.[role] ?? copies[displayStep];
 
   return (
     <div className="flex-1 flex flex-col">
@@ -97,16 +121,18 @@ export default function AnalysisLoading({ role, recordingDuration }: Props) {
               </div>
             </div>
             <p className="font-semibold text-sm">
-              {ANALYSIS_STEPS[step].icon} {ANALYSIS_STEPS[step].label}
+              {ANALYSIS_STEPS[displayStep].icon} {status?.stepLabel ?? ANALYSIS_STEPS[displayStep].label}
             </p>
-            <p className="text-xs text-gray-400">Step {step + 1} / 4</p>
+            <p className="text-xs text-gray-400">
+              Step {displayStep + 1} / {status?.totalSteps ?? 4}
+            </p>
           </div>
 
           {/* 단계 리스트 */}
           <div className="space-y-3 mb-6">
             {ANALYSIS_STEPS.map((s, i) => {
-              const active = i === step;
-              const done = i < step;
+              const active = i === displayStep;
+              const done = i < displayStep;
               return (
                 <div
                   key={i}
@@ -143,7 +169,7 @@ export default function AnalysisLoading({ role, recordingDuration }: Props) {
 
           {/* 위트 카피 */}
           <div className="bg-purple-50 rounded-xl p-4 text-center">
-            <p className="text-sm text-gray-600 italic">{copies[step]}</p>
+            <p className="text-sm text-gray-600 italic">{wittyMessage}</p>
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useRecorder } from "@/features/meeting/useRecorder";
@@ -10,7 +10,7 @@ import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
 
-type LocalStatus = "pending" | "recording" | "analyzing";
+type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "error";
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams<{ meetingId: string }>();
@@ -21,6 +21,8 @@ export default function MeetingDetailPage() {
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
   const [localStatus, setLocalStatus] = useState<LocalStatus>("pending");
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const pendingUploadRef = useRef<{ blob: Blob; durationSec: number } | null>(null);
 
   useEffect(() => {
     if (meeting?.status === "ANALYZING" || meeting?.status === "RECORDING") {
@@ -33,15 +35,32 @@ export default function MeetingDetailPage() {
     setLocalStatus("recording");
   }, [recorder]);
 
-  const handleEndMeeting = useCallback(() => {
-    recorder.stop();
-    setLocalStatus("analyzing");
+  const performUpload = useCallback(async (id: string, blob: Blob, durationSec: number) => {
+    setLocalStatus("uploading");
+    setUploadError(null);
+    try {
+      await upload(id, blob, durationSec);
+      setLocalStatus("analyzing");
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : '업로드에 실패했습니다.';
+      setUploadError(msg);
+      setLocalStatus("error");
+    }
+  }, [upload]);
+
+  const handleEndMeeting = useCallback(async () => {
+    if (!meetingId) return;
     setShowEnd(false);
-    setTimeout(() => {
-      const blob = recorder.getBlob();
-      if (blob && meetingId) upload(meetingId, blob);
-    }, 500);
-  }, [recorder, meetingId, upload]);
+    const { blob, durationSec } = await recorder.stop();
+    pendingUploadRef.current = { blob, durationSec };
+    await performUpload(meetingId, blob, durationSec);
+  }, [meetingId, recorder, performUpload]);
+
+  const handleRetry = useCallback(async () => {
+    if (!meetingId || !pendingUploadRef.current) return;
+    const { blob, durationSec } = pendingUploadRef.current;
+    await performUpload(meetingId, blob, durationSec);
+  }, [meetingId, performUpload]);
 
   if (loading) {
     return (
@@ -72,12 +91,53 @@ export default function MeetingDetailPage() {
     );
   }
 
+  if (localStatus === "uploading") {
+    return (
+      <PageLayout>
+        <div className="flex flex-col">
+          <MeetingHeader meeting={meeting} />
+          <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
+            <div className="w-10 h-10 border-4 border-[#5F74FA] border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm text-gray-600">녹음 파일을 업로드 중입니다...</p>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (localStatus === "error") {
+    return (
+      <PageLayout>
+        <div className="flex flex-col">
+          <MeetingHeader meeting={meeting} />
+          <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
+            <p className="text-base font-semibold text-red-500">
+              {uploadError ?? '오류가 발생했습니다.'}
+            </p>
+            <button
+              onClick={handleRetry}
+              className="px-5 py-2.5 rounded-lg bg-[#5F74FA] text-sm text-white font-medium hover:bg-[#4E62E6]"
+            >
+              다시 시도
+            </button>
+            <button
+              onClick={() => navigate('/leader/meetings')}
+              className="px-5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
+            >
+              목록으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
+
   if (localStatus === "analyzing") {
     return (
       <PageLayout>
         <div className="flex flex-col">
           <MeetingHeader meeting={meeting} />
-          <AnalysisLoading role="leader" recordingDuration={recorder.elapsed} />
+          <AnalysisLoading role="leader" recordingDuration={recorder.elapsed} meetingId={meetingId!} />
         </div>
       </PageLayout>
     );

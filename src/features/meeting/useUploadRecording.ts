@@ -1,23 +1,41 @@
 import { useState, useCallback } from "react";
+import { uploadRecording } from "@/api/meetings";
+
+const MAX_FILE_SIZE = 25 * 1024 * 1024;
 
 export function useUploadRecording() {
   const [isUploading, setIsUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const upload = useCallback(async (meetingId: string, blob: Blob) => {
+  const upload = useCallback(async (meetingId: string, blob: Blob, durationSec: number) => {
+    if (blob.size > MAX_FILE_SIZE) {
+      const msg = '녹음 파일이 너무 큽니다. (25MB 초과)';
+      setError(msg);
+      throw new Error(msg);
+    }
+    // 테스트 조건, 백엔드 정상 연결 시 삭제
+    if (import.meta.env.VITE_USE_MOCK === 'true' && meetingId.startsWith('mock-')) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `recording-${meetingId}-${durationSec}s.webm`;
+      a.click();
+      URL.revokeObjectURL(url);
+      await new Promise((r) => setTimeout(r, 1500));
+      return;
+    }
     setIsUploading(true);
+    setError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", blob, `meeting-${meetingId}.webm`);
-      formData.append("meetingId", meetingId);
-
-      // TODO: 실제 API 엔드포인트로 교체
-      // await apiClient.post("/meetings/upload", formData);
-
-      console.log("[useUploadRecording] uploaded", meetingId, blob.size, "bytes");
+      await uploadRecording(meetingId, blob, durationSec);
+    } catch {
+      const msg = '녹음 파일 업로드에 실패했습니다.';
+      setError(msg);
+      throw new Error(msg);
     } finally {
       setIsUploading(false);
     }
   }, []);
 
-  return { upload, isUploading };
+  return { upload, isUploading, error };
 }

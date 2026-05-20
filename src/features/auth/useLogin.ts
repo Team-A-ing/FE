@@ -5,8 +5,6 @@ import type { User, UserRole } from '@/types/user';
 
 type ApiRole = 'LEADER' | 'MEMBER';
 
-const USE_MOCK_LOGIN = true;
-
 interface LoginRequest {
   email: string;
   password: string;
@@ -17,6 +15,7 @@ interface LoginApiUser {
   email: string;
   name: string;
   role: ApiRole;
+  jobTitle?: string;
   teamId?: string | number | null;
 }
 
@@ -35,6 +34,7 @@ const toUser = (user: LoginApiUser): User => ({
   email: user.email,
   name: user.name,
   role: toUserRole(user.role),
+  jobTitle: user.jobTitle || undefined,
   teamId: user.teamId == null ? '' : String(user.teamId),
 });
 
@@ -48,12 +48,13 @@ export function useLogin() {
     setError('');
 
     try {
-      if (USE_MOCK_LOGIN) {
+      if (import.meta.env.VITE_USE_MOCK === 'true') {
         const authUser: User = {
           id: '1',
           email: email.trim(),
           name: '테스트 유저',
           role: 'leader',
+          jobTitle: 'FE 엔지니어',
           teamId: '1',
         };
 
@@ -64,7 +65,7 @@ export function useLogin() {
         return authUser;
       }
 
-      const response = await apiClient.post<LoginApiResponse>('/api/v1/auth/login', {
+      const response = await apiClient.post<LoginApiResponse>('/v1/auth/login', {
         email: email.trim(),
         password,
       });
