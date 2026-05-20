@@ -5,7 +5,7 @@ import type { User, UserRole } from '@/types/user';
 
 export type SignupRole = 'LEADER' | 'MEMBER';
 
-const USE_MOCK_SIGNUP = true;
+const USE_MOCK_SIGNUP = false;
 
 interface SignupRequest {
   name: string;
@@ -68,7 +68,7 @@ export function useSignup() {
         return null;
       }
 
-      const response = await apiClient.post<SignupApiResponse>('/api/v1/auth/signup', signupPayload);
+      const response = await apiClient.post<SignupApiResponse>('/v1/auth/signup', signupPayload);
 
       if (response.data?.success === false) {
         throw new Error(response.data.message || '회원 가입에 실패했습니다.');

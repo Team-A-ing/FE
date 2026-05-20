@@ -17,6 +17,7 @@ interface LoginApiUser {
   email: string;
   name: string;
   role: ApiRole;
+  jobTitle?: string;
   teamId?: string | number | null;
 }
 
@@ -35,6 +36,7 @@ const toUser = (user: LoginApiUser): User => ({
   email: user.email,
   name: user.name,
   role: toUserRole(user.role),
+  jobTitle: user.jobTitle || undefined,
   teamId: user.teamId == null ? '' : String(user.teamId),
 });
 
@@ -54,6 +56,7 @@ export function useLogin() {
           email: email.trim(),
           name: '테스트 유저',
           role: 'leader',
+          jobTitle: 'FE 엔지니어',
           teamId: '1',
         };
 

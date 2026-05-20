@@ -1,7 +1,8 @@
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/stores/authStore';
+import { useState, useRef, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useMeetingStore } from '@/stores/meetingStore';
-import { ROUTES } from '@/constants/routes';
+import { useMe } from '@/features/auth/useMe';
+import { useLogout } from '@/features/auth/useLogout';
 
 interface NavItem {
   label: string;
@@ -24,15 +25,6 @@ const UsersIcon = () => (
     <circle cx="9" cy="7" r="4" />
     <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
     <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const GridIcon = () => (
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    <rect x="3" y="3" width="7" height="7" />
-    <rect x="14" y="3" width="7" height="7" />
-    <rect x="14" y="14" width="7" height="7" />
-    <rect x="3" y="14" width="7" height="7" />
   </svg>
 );
 
@@ -81,10 +73,18 @@ const ChevronRightIcon = () => (
   </svg>
 );
 
+const LogoutIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+    <polyline points="16 17 21 12 16 7" />
+    <line x1="21" y1="12" x2="9" y2="12" />
+  </svg>
+);
+
 const navItems: NavItem[] = [
   { label: '팀 인사이트 대시보드', path: '/leader/dashboard', icon: <BarChartIcon /> },
   { label: '1on1 미팅', path: '/leader/meetings', icon: <CalendarIcon /> },
-  { label: '멤버 리포트', path: '/leader/reports', icon: <UsersIcon /> }
+  { label: '멤버 리포트', path: '/leader/reports', icon: <UsersIcon /> },
 ];
 
 const bottomItems = [
@@ -95,9 +95,24 @@ const bottomItems = [
 export default function Sidebar() {
   const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
   const location = useLocation();
+  const user = useMe();
+  const { logout } = useLogout();
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
 
-  // "1on1 미팅" 네비게이션이 활성화되어야 하는 경로들
-  const isMeetingActive = location.pathname === '/leader/meetings' || location.pathname.startsWith('/leader/meeting/');
+  useEffect(() => {
+    if (!profileMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [profileMenuOpen]);
+
+  const isMeetingActive =
+    location.pathname === '/leader/meetings' || location.pathname.startsWith('/leader/meeting/');
 
   return (
     <aside
@@ -119,8 +134,8 @@ export default function Sidebar() {
 
       {/* New 1on1 Button */}
       <div className="px-4 pt-3 pb-2">
-        <button 
-          onClick={() => setCreateModalOpen(true)} // 클릭 시 전역 상태 변경
+        <button
+          onClick={() => setCreateModalOpen(true)}
           className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
         >
           새 1on1 만들기
@@ -130,9 +145,8 @@ export default function Sidebar() {
       {/* Nav */}
       <nav className="flex-1 px-3 pt-1 overflow-y-auto">
         {navItems.map((item) => {
-          // 1on1 미팅 아이템의 경우 특별한 활성화 로직 적용
-          const isActive = item.path === '/leader/meetings' ? isMeetingActive : location.pathname === item.path;
-          
+          const isActive =
+            item.path === '/leader/meetings' ? isMeetingActive : location.pathname === item.path;
           return (
             <NavLink
               key={item.path}
@@ -183,15 +197,39 @@ export default function Sidebar() {
       </div>
 
       {/* User Profile */}
-      <div className="px-4 py-3 border-t border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-semibold">G</span>
+      <div className="relative" ref={profileRef}>
+        {profileMenuOpen && (
+          <div className="absolute bottom-full left-4 right-4 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-30">
+            <button
+              onClick={logout}
+              className="w-full px-4 py-2.5 text-sm text-left text-red-500 hover:bg-red-50 transition-colors flex items-center gap-2"
+            >
+              <LogoutIcon />
+              로그아웃
+            </button>
           </div>
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">Guest</p>
-            <p className="text-xs text-gray-400 truncate">guest@readb.io</p>
-          </div>
+        )}
+        <div className="px-4 py-3 border-t border-gray-100">
+          <button
+            className="flex items-center gap-2 w-full rounded-lg hover:bg-gray-50 transition-colors px-1 py-0.5 disabled:cursor-default"
+            onClick={() => setProfileMenuOpen((prev) => !prev)}
+            disabled={!user}
+          >
+            <div className="w-7 h-7 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-xs font-semibold">
+                {user?.name?.[0] ?? '?'}
+              </span>
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="text-sm font-medium text-gray-800 truncate">
+                {user?.name ?? '...'}
+              </p>
+              <p className="text-xs text-gray-400 truncate">{user?.email ?? ''}</p>
+              {user?.jobTitle && (
+                <p className="text-xs text-gray-400 truncate">{user.jobTitle}</p>
+              )}
+            </div>
+          </button>
         </div>
       </div>
     </aside>

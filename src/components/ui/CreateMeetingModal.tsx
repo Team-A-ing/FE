@@ -11,6 +11,13 @@ interface TeamMemberApi {
   role: string;
 }
 
+const MOCK_MEMBERS: TeamMemberApi[] = [
+  { id: 1, name: "김민준", jobTitle: "프로덕트 매니저", role: "member" },
+  { id: 2, name: "이서연", jobTitle: "프론트엔드 개발자", role: "member" },
+  { id: 3, name: "박지호", jobTitle: "백엔드 개발자", role: "member" },
+  { id: 4, name: "최유나", jobTitle: "디자이너", role: "member" },
+];
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -53,7 +60,12 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!isOpen || !user?.teamId) return;
+    if (!isOpen) return;
+    if (import.meta.env.VITE_USE_MOCK === 'true') {
+      setMembers(MOCK_MEMBERS);
+      return;
+    }
+    if (!user?.teamId) return;
     apiClient
       .get<ApiResponse<TeamMemberApi[]>>(`/api/v1/teams/${user.teamId}/members`)
       .then((res) => setMembers(res.data.data))
@@ -86,6 +98,11 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
     if (!selected) return;
     setIsSubmitting(true);
     try {
+      if (import.meta.env.VITE_USE_MOCK === 'true') {
+        onCreated();
+        navigate(`/leader/meeting/mock-${selected.id}`);
+        return;
+      }
       const res = await apiClient.post<ApiResponse<{ meetingId: number }>>(
         "/api/v1/meetings",
         { memberId: selected.id, scheduledAt: `${selectedDate}T${selectedTime}:00` }
