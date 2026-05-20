@@ -44,7 +44,7 @@ export default function MemberMeetingDetailPage() {
       <PageLayout>
         <div className="flex flex-col">
           <MeetingHeader meeting={meeting} />
-          <AnalysisLoading role="member" />
+          <AnalysisLoading role="member" meetingId={meetingId ?? ""} />
         </div>
       </PageLayout>
     );
