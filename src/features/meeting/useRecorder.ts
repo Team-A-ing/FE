@@ -11,6 +11,8 @@ export function useRecorder() {
   const analyserRef = useRef<AnalyserNode | null>(null);
   const rafRef = useRef<number | null>(null);
   const blobRef = useRef<Blob | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const elapsedRef = useRef(0);
 
   const tickAudioLevel = useCallback(() => {
     if (!analyserRef.current) return;
@@ -27,6 +29,7 @@ export function useRecorder() {
 
   const start = useCallback(async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    streamRef.current = stream;
 
     const ctx = new AudioContext();
     const source = ctx.createMediaStreamSource(stream);
@@ -35,33 +38,51 @@ export function useRecorder() {
     source.connect(analyser);
     analyserRef.current = analyser;
 
-    const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
+    const mr = new MediaRecorder(stream, {
+      mimeType: "audio/webm",
+      audioBitsPerSecond: 16000,
+    });
     chunksRef.current = [];
     mr.ondataavailable = (e) => {
       if (e.data.size > 0) chunksRef.current.push(e.data);
-    };
-    mr.onstop = () => {
-      blobRef.current = new Blob(chunksRef.current, { type: "audio/webm" });
-      stream.getTracks().forEach((t) => t.stop());
     };
 
     recorderRef.current = mr;
     mr.start(1000);
     setIsRecording(true);
     setElapsed(0);
-    timerRef.current = setInterval(() => setElapsed((t) => t + 1), 1000);
+    elapsedRef.current = 0;
+    timerRef.current = setInterval(() => {
+      setElapsed((t) => {
+        const next = t + 1;
+        elapsedRef.current = next;
+        return next;
+      });
+    }, 1000);
     rafRef.current = requestAnimationFrame(tickAudioLevel);
   }, [tickAudioLevel]);
 
-  const stop = useCallback(() => {
-    recorderRef.current?.stop();
-    if (timerRef.current) clearInterval(timerRef.current);
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    setIsRecording(false);
-    setAudioLevel(0);
+  const stop = useCallback((): Promise<{ blob: Blob; durationSec: number }> => {
+    return new Promise((resolve, reject) => {
+      const recorder = recorderRef.current;
+      if (!recorder) {
+        reject(new Error('녹음이 시작되지 않았습니다.'));
+        return;
+      }
+      const durationSec = elapsedRef.current;
+      recorder.onstop = () => {
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+        blobRef.current = blob;
+        streamRef.current?.getTracks().forEach((t) => t.stop());
+        resolve({ blob, durationSec });
+      };
+      recorder.stop();
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      setIsRecording(false);
+      setAudioLevel(0);
+    });
   }, []);
 
-  const getBlob = useCallback(() => blobRef.current, []);
-
-  return { isRecording, elapsed, audioLevel, start, stop, getBlob };
+  return { isRecording, elapsed, audioLevel, start, stop };
 }

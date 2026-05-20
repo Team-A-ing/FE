@@ -25,6 +25,7 @@ const initialForm: SignupForm = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 const roleOptions: Array<{ label: string; value: Role }> = [
   { label: '리더', value: 'LEADER' },
   { label: '멤버', value: 'MEMBER' },
@@ -52,6 +53,10 @@ export default function SignupPage() {
 
     if (!emailPattern.test(email.trim())) {
       return '올바른 이메일 형식을 입력해주세요.';
+    }
+
+    if (!passwordPattern.test(password)) {
+      return '비밀번호는 8자 이상, 영문·숫자·특수문자를 포함해야 합니다.';
     }
 
     if (password !== passwordConfirm) {
@@ -91,12 +96,8 @@ export default function SignupPage() {
       setMessageType('success');
       window.setTimeout(() => navigate('/login'), 1000);
     } catch (error) {
-      const serverMessage =
-        error && typeof error === 'object' && 'response' in error
-          ? (error.response as { data?: { message?: string } })?.data?.message
-          : '';
-
-      setMessage(serverMessage || '회원 가입에 실패했습니다.');
+      const message = error instanceof Error ? error.message : '회원 가입에 실패했습니다.';
+      setMessage(message);
       setMessageType('error');
     }
   };
@@ -138,6 +139,7 @@ export default function SignupPage() {
               placeholder="비밀번호를 입력하세요"
               autoComplete="new-password"
             />
+            <p className="mt-1 text-xs text-gray-400">8자 이상, 영문·숫자·특수문자를 포함해야 합니다.</p>
           </label>
 
           <label className="block">

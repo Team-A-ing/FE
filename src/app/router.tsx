@@ -10,7 +10,7 @@ import MemberMeetingDetailPage from '@/pages/member/MeetingDetailPage';
 import SurveyPage from '@/pages/member/SurveyPage';
 
 const router = createBrowserRouter([
-  { path: '/', element: <Navigate to="/leader/dashboard" replace /> },
+  { path: '/', element: <Navigate to="/login" replace /> },
   { path: '/login', element: <LoginPage /> },
   { path: '/signup', element: <SignupPage /> },
   { path: '/leader/dashboard', element: <LeaderDashboard /> },
@@ -18,7 +18,6 @@ const router = createBrowserRouter([
   { path: '/leader/meeting/:meetingId', element: <LeaderMeetingDetailPage /> },
   { path: '/leader/promises', element: <PromiseLedgerPage /> },
   { path: '/leader/reports', element: <LeaderDashboard /> },
-  { path: '/leader/9box', element: <LeaderDashboard /> },
   { path: '/leader/overview', element: <LeaderDashboard /> },
   { path: '/member/dashboard', element: <MemberDashboard /> },
   { path: '/member/meeting/:meetingId', element: <MemberMeetingDetailPage /> },
