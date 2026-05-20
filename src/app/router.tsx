@@ -3,10 +3,10 @@ import LoginPage from '@/pages/auth/LoginPage';
 import SignupPage from '@/pages/auth/SignupPage';
 import LeaderDashboard from '@/pages/leader/LeaderDashboard';
 import MeetingsPage from '@/pages/leader/MeetingsPage';
-import MeetingDetailPage from '@/pages/leader/MeetingDetailPage';
+import LeaderMeetingDetailPage from '@/pages/leader/MeetingDetailPage';
 import PromiseLedgerPage from '@/pages/leader/PromiseLedgerPage';
 import MemberDashboard from '@/pages/member/MemberDashboard';
-import MeetingFeedbackPage from '@/pages/member/MeetingFeedbackPage';
+import MemberMeetingDetailPage from '@/pages/member/MeetingDetailPage';
 import SurveyPage from '@/pages/member/SurveyPage';
 
 const router = createBrowserRouter([
@@ -15,15 +15,14 @@ const router = createBrowserRouter([
   { path: '/signup', element: <SignupPage /> },
   { path: '/leader/dashboard', element: <LeaderDashboard /> },
   { path: '/leader/meetings', element: <MeetingsPage /> },
-  { path: '/leader/meeting/:meetingId', element: <MeetingDetailPage /> },
+  { path: '/leader/meeting/:meetingId', element: <LeaderMeetingDetailPage /> },
   { path: '/leader/promises', element: <PromiseLedgerPage /> },
   { path: '/leader/reports', element: <LeaderDashboard /> },
   { path: '/leader/9box', element: <LeaderDashboard /> },
   { path: '/leader/overview', element: <LeaderDashboard /> },
   { path: '/member/dashboard', element: <MemberDashboard /> },
-  { path: '/member/meeting/:meetingId', element: <MeetingFeedbackPage /> },
+  { path: '/member/meeting/:meetingId', element: <MemberMeetingDetailPage /> },
   { path: '/member/survey/:meetingId', element: <SurveyPage /> },
-  { path: '/meeting', element: <MeetingDetailPage/> },
   { path: '/settings', element: <LeaderDashboard /> },
   { path: '/invite', element: <LeaderDashboard /> },
 ]);

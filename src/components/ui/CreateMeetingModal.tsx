@@ -1,12 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
-import { useMeetingStore } from "@/stores/meetingStore";
-import type { TeamMember } from "@/types/meeting";
+import { useAuthStore } from "@/stores/authStore";
+import apiClient from "@/api/client";
+import type { ApiResponse } from "@/api/types";
 
-const MOCK_MEMBERS: TeamMember[] = [
-  { id: "1", name: "김지수", email: "jisukim34@gmail.com" },
-  { id: "2", name: "김하슬", email: "202011992@dgu.ac.kr" },
-];
+interface TeamMemberApi {
+  id: number;
+  name: string;
+  jobTitle: string;
+  role: string;
+}
 
 interface Props {
   isOpen: boolean;
@@ -14,17 +17,51 @@ interface Props {
   onCreated: () => void;
 }
 
+const getDefaultDate = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+};
+
+const getDefaultTime = () => {
+  const now = new Date();
+  const h = now.getHours();
+  const min = now.getMinutes();
+  if (min < 30) return `${String(h).padStart(2, "0")}:30`;
+  const nextH = h + 1;
+  if (nextH >= 24) return "23:30";
+  return `${String(nextH).padStart(2, "0")}:00`;
+};
+
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2);
+  const m = i % 2 === 0 ? "00" : "30";
+  return `${String(h).padStart(2, "0")}:${m}`;
+});
+
 export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props) {
   const navigate = useNavigate();
-  const createMeeting = useMeetingStore((s) => s.createMeeting);
+  const user = useAuthStore((s) => s.user);
+  const [members, setMembers] = useState<TeamMemberApi[]>([]);
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<TeamMember | null>(null);
-  const [role, setRole] = useState<"leader" | "member">("member");
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const [selected, setSelected] = useState<TeamMemberApi | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(getDefaultDate());
+  const [selectedTime, setSelectedTime] = useState<string>(getDefaultTime());
   const [viewMonth, setViewMonth] = useState(() => new Date());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const filtered = MOCK_MEMBERS.filter(
-    (m) => m.name.includes(search) || m.email.includes(search)
+  useEffect(() => {
+    if (!isOpen || !user?.teamId) return;
+    apiClient
+      .get<ApiResponse<TeamMemberApi[]>>(`/api/v1/teams/${user.teamId}/members`)
+      .then((res) => setMembers(res.data.data))
+      .catch(() => setMembers([]));
+  }, [isOpen, user?.teamId]);
+
+  const filtered = members.filter(
+    (m) => m.name.includes(search) || m.jobTitle.includes(search)
   );
 
   const calDays = useMemo(() => {
@@ -43,13 +80,20 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
     return `${y}-${m}-${String(d).padStart(2, "0")}`;
   };
 
-  const canCreate = selected && selectedDate;
+  const canCreate = selected && !isSubmitting;
 
-  const handleCreate = () => {
-    if (selected && selectedDate) {
-      const meeting = createMeeting(selected, role, selectedDate);
-      onCreated(); // 부모(App.tsx)의 onClose 등을 실행
-      navigate(`/leader/meeting/${meeting.id}`); // 생성 즉시 상세 페이지로 이동
+  const handleCreate = async () => {
+    if (!selected) return;
+    setIsSubmitting(true);
+    try {
+      const res = await apiClient.post<ApiResponse<{ meetingId: number }>>(
+        "/api/v1/meetings",
+        { memberId: selected.id, scheduledAt: `${selectedDate}T${selectedTime}:00` }
+      );
+      onCreated();
+      navigate(`/leader/meeting/${res.data.data.meetingId}`);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -93,38 +137,11 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
                   </div>
                   <div>
                     <p className="text-sm font-medium">{m.name}</p>
-                    <p className="text-xs text-gray-400">{m.email}</p>
+                    <p className="text-xs text-gray-400">{m.jobTitle}</p>
                   </div>
                 </label>
               ))}
             </div>
-
-            <p className="font-semibold mb-3">리더를 선택해주세요.</p>
-            <div className="flex gap-3">
-              {(["leader", "member"] as const).map((r) => (
-                <label
-                  key={r}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full border cursor-pointer transition-colors ${
-                    role === r
-                      ? "border-[#4E62E6] bg-[#5F74FA]/10 text-[#5F74FA]"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="role"
-                    checked={role === r}
-                    onChange={() => setRole(r)}
-                    className="hidden"
-                  />
-                  {r === "leader" ? "나" : "상대방"}
-                </label>
-              ))}
-            </div>
-            <p className="text-xs text-gray-400 mt-2">
-              ※ 리더는 시작·종료 권한과 상대의 업무 몰입도 및 상황 만족도 체크, 1on1 분석
-              인사이트를 제공받게 됩니다.
-            </p>
           </div>
 
           {/* 오른쪽: 캘린더 */}
@@ -179,6 +196,18 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
                   );
                 })}
               </div>
+            </div>
+            <div className="mt-4">
+              <p className="font-semibold mb-2 text-sm">미팅 시간</p>
+              <select
+                value={selectedTime}
+                onChange={(e) => setSelectedTime(e.target.value)}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-[#4E62E6]"
+              >
+                {TIME_OPTIONS.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

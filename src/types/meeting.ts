@@ -27,3 +27,13 @@ export interface MeetingData {
 }
 
 export type AnalysisStep = 0 | 1 | 2 | 3;
+
+export interface MeetingDetail {
+  meetingId: number;
+  round: number;
+  scheduledAt: string;          // ISO 8601, 예: "2026-05-08T14:00:00"
+  durationSec: number | null;
+  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED"; // 백엔드 API 응답값 (대문자)
+  leaderName: string;
+  memberName: string;
+}
