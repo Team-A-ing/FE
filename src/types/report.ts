@@ -90,5 +90,5 @@ export interface NewPromise {
   content: string;
   category: string;
   dueDate: string;
-  status: string;
+  status: 'PENDING' | 'DONE' | 'MISSED';
 }
