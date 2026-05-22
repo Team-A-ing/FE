@@ -8,4 +8,5 @@ export interface User {
   jobTitle?: string
   teamId: string
   teamName?: string
+  inviteCode?: string
 }

@@ -9,6 +9,7 @@ interface MeApiData {
   jobTitle?: string | null;
   teamId?: string | number | null;
   teamName?: string | null;
+  inviteCode?: string | null;
 }
 
 interface MeApiResponse {
@@ -17,7 +18,7 @@ interface MeApiResponse {
 }
 
 export async function fetchMe(): Promise<User> {
-  const { data } = await apiClient.get<MeApiResponse>('/api/v1/users/me');
+  const { data } = await apiClient.get<MeApiResponse>('/v1/users/me');
   const u = data.data;
   return {
     id: String(u.id),
@@ -27,5 +28,6 @@ export async function fetchMe(): Promise<User> {
     jobTitle: u.jobTitle ?? undefined,
     teamId: u.teamId == null ? '' : String(u.teamId),
     teamName: u.teamName ?? undefined,
+    inviteCode: u.inviteCode ?? undefined,
   };
 }

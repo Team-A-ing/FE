@@ -36,3 +36,27 @@ export async function joinTeam(inviteCode: string): Promise<JoinTeamResult> {
   const d = res.data.data;
   return { teamId: String(d.teamId), teamName: d.teamName };
 }
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  jobTitle?: string;
+  role: 'leader' | 'member';
+}
+
+interface TeamMemberApiData {
+  id: string | number;
+  name: string;
+  jobTitle?: string | null;
+  role: 'LEADER' | 'MEMBER';
+}
+
+export async function getTeamMembers(teamId: string): Promise<TeamMember[]> {
+  const res = await apiClient.get<ApiResponse<TeamMemberApiData[]>>(`/v1/teams/${teamId}/members`);
+  return res.data.data.map((m) => ({
+    id: String(m.id),
+    name: m.name,
+    jobTitle: m.jobTitle ?? undefined,
+    role: m.role === 'LEADER' ? 'leader' : 'member',
+  }));
+}
