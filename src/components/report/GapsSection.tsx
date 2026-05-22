@@ -101,7 +101,7 @@ export default function GapsSection({ data }: Props) {
             <div
               className="h-full rounded-full bg-green-400"
               style={{
-                width: `${(executionGap.fulfilled / executionGap.totalPromises) * 100}%`,
+                width: `${executionGap.totalPromises === 0 ? 0 : (executionGap.fulfilled / executionGap.totalPromises) * 100}%`,
               }}
             />
           </div>
@@ -110,3 +110,4 @@ export default function GapsSection({ data }: Props) {
     </div>
   );
 }
+
