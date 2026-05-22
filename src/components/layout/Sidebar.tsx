@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useMeetingStore } from '@/stores/meetingStore';
 import { useMe } from '@/features/auth/useMe';
 import { useLogout } from '@/features/auth/useLogout';
+import { useTeamMembers } from '@/features/team/useTeamMembers';
 
 interface NavItem {
   label: string;
@@ -98,7 +99,12 @@ export default function Sidebar() {
   const user = useMe();
   const { logout } = useLogout();
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [teamMenuOpen, setTeamMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<'members' | 'inviteCode' | null>(null);
+  const [codeCopied, setCodeCopied] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
+  const teamMenuRef = useRef<HTMLDivElement>(null);
+  const { members, isLoading: membersLoading, fetch: fetchMembers } = useTeamMembers(user?.teamId ?? '');
 
   useEffect(() => {
     if (!profileMenuOpen) return;
@@ -111,6 +117,37 @@ export default function Sidebar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [profileMenuOpen]);
 
+  useEffect(() => {
+    if (!teamMenuOpen) {
+      setActiveSection(null);
+      return;
+    }
+    const handleClickOutside = (e: MouseEvent) => {
+      if (teamMenuRef.current && !teamMenuRef.current.contains(e.target as Node)) {
+        setTeamMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [teamMenuOpen]);
+
+  const handleSectionToggle = (section: 'members' | 'inviteCode') => {
+    if (activeSection === section) {
+      setActiveSection(null);
+      return;
+    }
+    setActiveSection(section);
+    if (section === 'members') fetchMembers();
+  };
+
+  const handleCopyInviteCode = () => {
+    if (!user?.inviteCode) return;
+    navigator.clipboard.writeText(user.inviteCode).then(() => {
+      setCodeCopied(true);
+      setTimeout(() => setCodeCopied(false), 2000);
+    });
+  };
+
   const isMeetingActive =
     location.pathname === '/leader/meetings' || location.pathname.startsWith('/leader/meeting/');
 
@@ -120,16 +157,106 @@ export default function Sidebar() {
       className="fixed left-0 top-0 h-full flex flex-col bg-white border-r border-gray-100 z-20"
     >
       {/* Workspace */}
-      <div className="px-4 pt-5 pb-3 border-b border-gray-100">
-        <button className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors">
+      <div className="relative px-4 pt-5 pb-3 border-b border-gray-100" ref={teamMenuRef}>
+        <button
+          onClick={() => setTeamMenuOpen((prev) => !prev)}
+          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+        >
           <div className="w-6 h-6 rounded bg-gray-800 flex items-center justify-center">
-            <span className="text-white text-xs font-bold">T</span>
+            <span className="text-white text-xs font-bold">
+              {user?.teamName?.[0]?.toUpperCase() ?? 'T'}
+            </span>
           </div>
-          <span className="text-sm font-semibold text-gray-800 flex-1 text-left">Test</span>
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <span className="text-sm font-semibold text-gray-800 flex-1 text-left truncate">
+            {user?.teamName ?? '...'}
+          </span>
+          <svg
+            width="12" height="12" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="2"
+            className={`flex-shrink-0 transition-transform duration-150 ${teamMenuOpen ? 'rotate-180' : ''}`}
+          >
             <polyline points="6 9 12 15 18 9" />
           </svg>
         </button>
+
+        {teamMenuOpen && (
+          <div className="absolute left-2 right-2 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-hidden">
+            {/* 소속 멤버 */}
+            <button
+              onClick={() => handleSectionToggle('members')}
+              className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <span>소속 멤버</span>
+              <svg
+                width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2"
+                className={`transition-transform duration-150 ${activeSection === 'members' ? 'rotate-90' : ''}`}
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+
+            {activeSection === 'members' && (
+              <div className="px-4 py-2 border-t border-gray-100 max-h-48 overflow-y-auto">
+                {membersLoading ? (
+                  <p className="text-xs text-gray-400 py-1">불러오는 중...</p>
+                ) : members.length === 0 ? (
+                  <p className="text-xs text-gray-400 py-1">멤버가 없습니다.</p>
+                ) : (
+                  <ul className="space-y-2 py-1">
+                    {members.map((m) => (
+                      <li key={m.id} className="flex items-center gap-2">
+                        <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+                          <span className="text-white text-[10px] font-semibold">{m.name[0]}</span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-medium text-gray-800 truncate">{m.name}</p>
+                          {m.jobTitle && (
+                            <p className="text-[10px] text-gray-400 truncate">{m.jobTitle}</p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+
+            {/* 초대 코드 (리더만) */}
+            {user?.role === 'leader' && (
+              <>
+                <button
+                  onClick={() => handleSectionToggle('inviteCode')}
+                  className="w-full flex items-center justify-between px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors border-t border-gray-100"
+                >
+                  <span>초대 코드</span>
+                  <svg
+                    width="12" height="12" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" strokeWidth="2"
+                    className={`transition-transform duration-150 ${activeSection === 'inviteCode' ? 'rotate-90' : ''}`}
+                  >
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+
+                {activeSection === 'inviteCode' && (
+                  <div className="px-4 py-3 border-t border-gray-100">
+                    <button
+                      type="button"
+                      onClick={handleCopyInviteCode}
+                      className="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-center font-mono text-sm font-semibold tracking-widest text-gray-800 hover:bg-gray-100 transition-colors"
+                    >
+                      {user?.inviteCode ?? '—'}
+                    </button>
+                    {codeCopied && (
+                      <p className="mt-1.5 text-center text-xs text-green-600">클립보드에 복사됐습니다.</p>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* New 1on1 Button */}

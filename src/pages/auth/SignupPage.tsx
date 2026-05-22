@@ -25,6 +25,7 @@ const initialForm: SignupForm = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]).{8,}$/;
 const roleOptions: Array<{ label: string; value: Role }> = [
   { label: '리더', value: 'LEADER' },
   { label: '멤버', value: 'MEMBER' },
@@ -54,6 +55,10 @@ export default function SignupPage() {
       return '올바른 이메일 형식을 입력해주세요.';
     }
 
+    if (!passwordPattern.test(password)) {
+      return '비밀번호는 8자 이상, 영문·숫자·특수문자를 포함해야 합니다.';
+    }
+
     if (password !== passwordConfirm) {
       return '비밀번호와 비밀번호 확인 내용이 일치하지 않습니다.';
     }
@@ -79,7 +84,7 @@ export default function SignupPage() {
         throw new Error('Role is required');
       }
 
-      await signup({
+      const authUser = await signup({
         name: form.name.trim(),
         email: form.email.trim(),
         password: form.password,
@@ -87,16 +92,16 @@ export default function SignupPage() {
         jobTitle: form.jobTitle,
       });
 
-      setMessage('가입이 성공하였습니다!');
-      setMessageType('success');
-      window.setTimeout(() => navigate('/login'), 1000);
+      if (authUser) {
+        navigate(authUser.role === 'leader' ? '/leader/team-setup' : '/member/team-join');
+      } else {
+        setMessage('가입이 성공하였습니다!');
+        setMessageType('success');
+        window.setTimeout(() => navigate('/login'), 1000);
+      }
     } catch (error) {
-      const serverMessage =
-        error && typeof error === 'object' && 'response' in error
-          ? (error.response as { data?: { message?: string } })?.data?.message
-          : '';
-
-      setMessage(serverMessage || '회원 가입에 실패했습니다.');
+      const message = error instanceof Error ? error.message : '회원 가입에 실패했습니다.';
+      setMessage(message);
       setMessageType('error');
     }
   };
@@ -138,6 +143,7 @@ export default function SignupPage() {
               placeholder="비밀번호를 입력하세요"
               autoComplete="new-password"
             />
+            <p className="mt-1 text-xs text-gray-400">8자 이상, 영문·숫자·특수문자를 포함해야 합니다.</p>
           </label>
 
           <label className="block">

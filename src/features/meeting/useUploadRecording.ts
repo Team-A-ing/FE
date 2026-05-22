@@ -13,6 +13,7 @@ export function useUploadRecording() {
       setError(msg);
       throw new Error(msg);
     }
+    // 테스트 조건, 백엔드 정상 연결 시 삭제
     if (import.meta.env.VITE_USE_MOCK === 'true' && meetingId.startsWith('mock-')) {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');

@@ -145,18 +145,44 @@ export default function MeetingDetailPage() {
 
   return (
     <PageLayout>
-      <div className="flex">
-        <div className="flex-1 flex flex-col">
+      <div className="flex h-full">
+        <div className="flex-1 flex flex-col h-full">
           <MeetingHeader meeting={meeting} />
 
           {!recorder.isRecording && localStatus === "pending" && (
-            <div className="border-t border-gray-200 px-8 py-4 flex justify-center">
-              <button
-                onClick={() => setShowStart(true)}
-                className="px-8 py-3 rounded-full text-white font-medium bg-[#5F74FA] hover:bg-[#4E62E6] shadow-lg shadow-[#5F74FA]/30 transition-all"
-              >
-                1on1 미팅 시작하기
-              </button>
+            <div className="flex-1 flex flex-col items-center justify-center gap-3 px-8 pb-32">
+              {(() => {
+                const skipCheck = import.meta.env.VITE_SKIP_SURVEY_CHECK === 'true';
+                const surveyDone = skipCheck || meeting.surveyCompleted === true;
+                return (
+                  <>
+                    <div className={`text-center text-sm ${surveyDone ? 'text-[#5F74FA]' : 'text-gray-400'}`}>
+                      {surveyDone ? (
+                        <>
+                          <p className="font-medium">멤버의 사전 서베이가 완료되었습니다.</p>
+                          <p>미팅을 시작할 수 있습니다.</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="font-medium">멤버의 사전 서베이가 완료되지 않았습니다.</p>
+                          <p>멤버의 사전 서베이가 완료된 후 미팅을 시작할 수 있습니다.</p>
+                        </>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setShowStart(true)}
+                      disabled={!surveyDone}
+                      className={`px-8 py-3 rounded-full font-medium transition-all ${
+                        surveyDone
+                          ? 'text-white bg-[#5F74FA] hover:bg-[#4E62E6] shadow-lg shadow-[#5F74FA]/30'
+                          : 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                      }`}
+                    >
+                      1on1 미팅 시작하기
+                    </button>
+                  </>
+                );
+              })()}
             </div>
           )}
           {localStatus === "recording" && (
@@ -200,7 +226,10 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
 
   return (
     <div className="px-8 py-4 border-b border-gray-200">
-      <h1 className="text-xl font-bold">{dateStr}</h1>
+      <div className="flex items-baseline gap-3">
+        <h1 className="text-xl font-bold">{meeting.memberName}님과의 {meeting.round}회차 1on1</h1>
+        <span className="text-sm text-gray-400">{dateStr}</span>
+      </div>
       <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
         <span className="w-6 h-6 rounded-full bg-[#5F74FA] flex items-center justify-center text-white text-xs">
           {meeting.leaderName[0]}
