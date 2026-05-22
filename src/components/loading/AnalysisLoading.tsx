@@ -7,6 +7,7 @@ interface Props {
   role: "leader" | "member";
   recordingDuration?: number;
   meetingId: string;
+  onCompleted?: () => void;
 }
 
 function formatDuration(s?: number) {
@@ -17,7 +18,7 @@ function formatDuration(s?: number) {
   return `${h}:${m}:${sec}`;
 }
 
-export default function AnalysisLoading({ role, recordingDuration, meetingId }: Props) {
+export default function AnalysisLoading({ role, recordingDuration, meetingId, onCompleted }: Props) {
   const navigate = useNavigate();
   const { status, error } = useMeetingStatus(meetingId, true);
   const copies = WITTY_COPIES[role];
@@ -48,7 +49,7 @@ export default function AnalysisLoading({ role, recordingDuration, meetingId }: 
       <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
         <p className="text-lg font-bold text-[#5F74FA]">분석이 완료되었습니다! 🎉</p>
         <button
-          onClick={() => navigate('/leader/meetings')}
+          onClick={() => onCompleted?.()}
           className="px-5 py-2.5 rounded-lg bg-[#5F74FA] text-sm text-white font-medium hover:bg-[#4E62E6]"
         >
           결과 보러 가기
