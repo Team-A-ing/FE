@@ -37,3 +37,12 @@ export interface MeetingDetail {
   leaderName: string;
   memberName: string;
 }
+
+export interface MeetingListItem {
+  meetingId: number;
+  round: number;
+  memberName: string;
+  scheduledAt: string;
+  durationSec: number | null;
+  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
+}
