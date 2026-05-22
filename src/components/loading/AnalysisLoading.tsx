@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ANALYSIS_STEPS, WITTY_COPIES } from "./loadingCopies";
 import { useMeetingStatus } from "@/features/meeting/useMeetingStatus";
@@ -27,6 +28,10 @@ export default function AnalysisLoading({ role, recordingDuration, meetingId, on
   const displayStep = Math.min(3, Math.max(0, (status?.stepNumber ?? 1) - 1)) as AnalysisStep;
   const isCompleted = status?.step === 'COMPLETED';
 
+  useEffect(() => {
+    if (isCompleted) onCompleted?.();
+  }, [isCompleted]);
+
   const r = 42;
   const circ = 2 * Math.PI * r;
 
@@ -39,20 +44,6 @@ export default function AnalysisLoading({ role, recordingDuration, meetingId, on
           className="px-5 py-2.5 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50"
         >
           목록으로 돌아가기
-        </button>
-      </div>
-    );
-  }
-
-  if (isCompleted) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
-        <p className="text-lg font-bold text-[#5F74FA]">분석이 완료되었습니다! 🎉</p>
-        <button
-          onClick={() => onCompleted?.()}
-          className="px-5 py-2.5 rounded-lg bg-[#5F74FA] text-sm text-white font-medium hover:bg-[#4E62E6]"
-        >
-          결과 보러 가기
         </button>
       </div>
     );
