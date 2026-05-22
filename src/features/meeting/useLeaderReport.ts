@@ -152,12 +152,14 @@ export function useLeaderReport(meetingId: string | undefined) {
       setLoading(false);
       return;
     }
+    let cancelled = false;
     setLoading(true);
     setError(null);
     fetchLeaderReport(meetingId)
-      .then(setReport)
-      .catch(() => setError('리포트를 불러오지 못했습니다.'))
-      .finally(() => setLoading(false));
+      .then((data) => { if (!cancelled) setReport(data); })
+      .catch(() => { if (!cancelled) setError('리포트를 불러오지 못했습니다.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [meetingId, retryCount]);
 
   const retry = () => setRetryCount((c) => c + 1);

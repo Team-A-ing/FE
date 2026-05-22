@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLeaderReport } from '@/features/meeting/useLeaderReport';
+import { useActionPlan } from '@/features/meeting/useActionPlan';
 import GapsSection from './GapsSection';
 import SpeechActsSection from './SpeechActsSection';
 import TalkRatioSection from './TalkRatioSection';
@@ -16,6 +17,7 @@ interface Props {
 export default function LeaderReportView({ meetingId }: Props) {
   const { report, loading, error, retry } = useLeaderReport(meetingId);
   const [activeTab, setActiveTab] = useState<ReportTab>('analysis');
+  const actionPlan = useActionPlan(report?.nextActionPlans ?? []);
 
   if (loading) {
     return (
@@ -74,7 +76,12 @@ export default function LeaderReportView({ meetingId }: Props) {
         {activeTab === 'feedback' && (
           <>
             <FeedbackSection items={report.feedbacks} />
-            <ActionPlanSection items={report.nextActionPlans} />
+            <ActionPlanSection
+                items={report.nextActionPlans}
+                completed={actionPlan.completed}
+                errorId={actionPlan.errorId}
+                onToggle={actionPlan.toggle}
+              />
             <PromisesSection data={report.promises} />
           </>
         )}

@@ -1,36 +1,13 @@
-import { useState } from 'react';
-import { completeActionPlan } from '@/api/actionPlans';
 import type { ActionPlan } from '@/types/report';
 
 interface Props {
   items: ActionPlan[];
+  completed: Set<number>;
+  errorId: number | null;
+  onToggle: (planId: number, currentlyDone: boolean) => Promise<void>;
 }
 
-export default function ActionPlanSection({ items }: Props) {
-  const [completed, setCompleted] = useState<Set<number>>(
-    new Set(items.filter((i) => i.isCompleted).map((i) => i.planId))
-  );
-  const [errorId, setErrorId] = useState<number | null>(null);
-  const isMock = import.meta.env.VITE_USE_MOCK === 'true';
-
-  const handleToggle = async (planId: number, currentlyDone: boolean) => {
-    if (currentlyDone) return;
-    setCompleted((prev) => new Set([...prev, planId]));
-    setErrorId(null);
-    if (!isMock) {
-      try {
-        await completeActionPlan(planId);
-      } catch {
-        setCompleted((prev) => {
-          const next = new Set(prev);
-          next.delete(planId);
-          return next;
-        });
-        setErrorId(planId);
-      }
-    }
-  };
-
+export default function ActionPlanSection({ items, completed, errorId, onToggle }: Props) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
@@ -50,7 +27,7 @@ export default function ActionPlanSection({ items }: Props) {
                 <input
                   type="checkbox"
                   checked={done}
-                  onChange={() => handleToggle(item.planId, done)}
+                  onChange={() => onToggle(item.planId, done)}
                   className="mt-0.5 w-4 h-4 accent-[#5F74FA] flex-shrink-0"
                 />
                 <span
