@@ -42,3 +42,9 @@ Thumbs.db
 gitmessage.txt
 
 # Editor directories and files
+
+# Local docs (AI-generated plans, specs — not for repo)
+docs/
+
+# Claude Code local config (per-developer, not for repo)
+.claude/
