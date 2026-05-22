@@ -36,4 +36,14 @@ export interface MeetingDetail {
   status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
   leaderName: string;
   memberName: string;
+  surveyCompleted?: boolean;
+}
+
+export interface MeetingListItem {
+  meetingId: number;
+  round: number;
+  memberName: string;
+  scheduledAt: string;
+  durationSec: number | null;
+  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
 }
