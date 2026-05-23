@@ -2,9 +2,38 @@ import apiClient from './client';
 import type { ApiResponse } from './types';
 import type { MeetingDetail, MeetingListItem } from '@/types/meeting';
 import type { LeaderReport } from '@/types/report';
+import type { MemberReportData } from '@/types/memberReport';
+
+export interface SubmitSurveyPayload {
+  meetingId: number;
+  scores: {
+    issues: string[];
+    energyLevel: number;
+    desiredRoles: string[];
+  };
+}
+
+export interface SurveyData {
+  id: number;
+  meetingId: number;
+  memberId: number;
+  scores: {
+    issues?: string[];
+    energyLevel?: number;
+    desiredRoles?: string[];
+    [key: string]: unknown;
+  };
+}
 
 export async function fetchMeetingDetail(meetingId: string): Promise<MeetingDetail> {
   const res = await apiClient.get<ApiResponse<MeetingDetail>>(`/v1/meetings/${meetingId}`);
+  return res.data.data;
+}
+
+export async function fetchMemberReport(meetingId: string): Promise<MemberReportData> {
+  const res = await apiClient.get<ApiResponse<MemberReportData>>(
+    `/v1/meetings/${meetingId}/member-report`,
+  );
   return res.data.data;
 }
 
@@ -26,5 +55,11 @@ export async function fetchLeaderReport(meetingId: string): Promise<LeaderReport
   const res = await apiClient.get<ApiResponse<LeaderReport>>(
     `/v1/meetings/${meetingId}/leader-report`
   );
+export async function submitSurvey(payload: SubmitSurveyPayload): Promise<void> {
+  await apiClient.post<ApiResponse<void>>('/v1/surveys', payload);
+}
+
+export async function fetchSurvey(meetingId: string): Promise<SurveyData> {
+  const res = await apiClient.get<ApiResponse<SurveyData>>(`/v1/surveys/${meetingId}`);
   return res.data.data;
 }

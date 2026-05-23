@@ -4,6 +4,7 @@ import { useMeetingDetail } from "@/features/meeting/useMeetingDetail";
 import SurveyForm from "@/components/survey/SurveyForm";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
+import MemberReportPage from "@/pages/member/MemberReportPage";
 
 export default function MemberMeetingDetailPage() {
   const { meetingId } = useParams<{ meetingId: string }>();
@@ -48,6 +49,10 @@ export default function MemberMeetingDetailPage() {
         </div>
       </PageLayout>
     );
+  }
+
+  if (meeting.status === "COMPLETED") {
+    return <MemberReportPage />;
   }
 
   return (
