@@ -6,5 +6,6 @@ export const ROUTES = {
   LEADER_PROMISES: '/leader/promises',
   MEMBER_DASHBOARD: '/member/dashboard',
   MEMBER_MEETING: (id: string) => `/member/meeting/${id}`,
+  MEMBER_REPORT: (id: string) => `/member/meeting/${id}/report`,
   MEMBER_SURVEY: (id: string) => `/member/survey/${id}`,
 } as const;
