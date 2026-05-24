@@ -10,8 +10,9 @@ import EndMeetingModal from "@/components/ui/EndMeetingModal";
 import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
+import LeaderReportView from "@/components/report/LeaderReportView";
 
-type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "error";
+type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "completed" | "error";
 
 export default function MeetingDetailPage() {
   const { meetingId } = useParams<{ meetingId: string }>();
@@ -33,6 +34,9 @@ export default function MeetingDetailPage() {
   useEffect(() => {
     if (meeting?.status === "ANALYZING" || meeting?.status === "RECORDING") {
       setLocalStatus(meeting.status.toLowerCase() as LocalStatus);
+    }
+    if (meeting?.status === "COMPLETED") {
+      setLocalStatus("completed");
     }
   }, [meeting?.status]);
 
@@ -143,7 +147,23 @@ export default function MeetingDetailPage() {
       <PageLayout>
         <div className="flex flex-col">
           <MeetingHeader meeting={meeting} />
-          <AnalysisLoading role="leader" recordingDuration={recorder.elapsed} meetingId={meetingId!} />
+          <AnalysisLoading
+            role="leader"
+            recordingDuration={recorder.elapsed}
+            meetingId={meetingId!}
+            onCompleted={() => setLocalStatus("completed")}
+          />
+        </div>
+      </PageLayout>
+    );
+  }
+
+  if (localStatus === "completed") {
+    return (
+      <PageLayout>
+        <div className="flex flex-col h-full">
+          <MeetingHeader meeting={meeting} />
+          <LeaderReportView meetingId={meetingId!} />
         </div>
       </PageLayout>
     );

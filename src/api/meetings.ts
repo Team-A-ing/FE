@@ -1,6 +1,7 @@
 import apiClient from './client';
 import type { ApiResponse } from './types';
 import type { MeetingDetail, MeetingListItem } from '@/types/meeting';
+import type { LeaderReport } from '@/types/report';
 import type { MemberReportData } from '@/types/memberReport';
 
 export interface SubmitSurveyPayload {
@@ -58,5 +59,13 @@ export async function submitSurvey(payload: SubmitSurveyPayload): Promise<void> 
 
 export async function fetchSurvey(meetingId: string): Promise<SurveyData> {
   const res = await apiClient.get<ApiResponse<SurveyData>>(`/api/v1/surveys/${meetingId}`);
+  return res.data.data;
+}
+
+
+export async function fetchLeaderReport(meetingId: string): Promise<LeaderReport> {
+  const res = await apiClient.get<ApiResponse<LeaderReport>>(
+    `/api/v1/meetings/${meetingId}/leader-report`
+  );
   return res.data.data;
 }

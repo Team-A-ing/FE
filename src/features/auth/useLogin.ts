@@ -1,42 +1,22 @@
 import { useState } from 'react';
 import apiClient from '@/api/client';
+import { fetchMe } from '@/api/user';
 import { useAuthStore } from '@/stores/authStore';
-import type { User, UserRole } from '@/types/user';
-
-type ApiRole = 'LEADER' | 'MEMBER';
 
 interface LoginRequest {
   email: string;
   password: string;
 }
 
-interface LoginApiUser {
-  id: string | number;
-  email: string;
-  name: string;
-  role: ApiRole;
-  jobTitle?: string;
-  teamId?: string | number | null;
-}
-
 interface LoginApiResponse {
   data?: {
     accessToken?: string;
     token?: string;
-    user?: LoginApiUser;
+    user?: {
+      role: 'LEADER' | 'MEMBER';
+    };
   };
 }
-
-const toUserRole = (role: ApiRole): UserRole => (role === 'LEADER' ? 'leader' : 'member');
-
-const toUser = (user: LoginApiUser): User => ({
-  id: String(user.id),
-  email: user.email,
-  name: user.name,
-  role: toUserRole(user.role),
-  jobTitle: user.jobTitle || undefined,
-  teamId: user.teamId == null ? '' : String(user.teamId),
-});
 
 export function useLogin() {
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -49,11 +29,11 @@ export function useLogin() {
 
     try {
       if (import.meta.env.VITE_USE_MOCK === 'true') {
-        const authUser: User = {
+        const authUser = {
           id: '1',
           email: email.trim(),
           name: '테스트 유저',
-          role: 'leader',
+          role: 'leader' as const,
           jobTitle: 'FE 엔지니어',
           teamId: '1',
         };
@@ -77,8 +57,8 @@ export function useLogin() {
         throw new Error('Invalid login response');
       }
 
-      const authUser = toUser(user);
       localStorage.setItem('token', token);
+      const authUser = await fetchMe();
       setAuth(authUser, token);
 
       return authUser;
