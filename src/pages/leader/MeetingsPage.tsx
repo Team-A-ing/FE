@@ -8,6 +8,11 @@ import { ROUTES } from "@/constants/routes";
 
 type BeStatus = MeetingListItem["status"];
 
+interface MeetingsPageProps {
+  showCreateButton?: boolean;
+  getMeetingPath?: (meetingId: string) => string;
+}
+
 const statusMap: Record<BeStatus, { label: string; badge: string }> = {
   PENDING:   { label: "대기 중",  badge: "bg-yellow-100 text-yellow-700" },
   RECORDING: { label: "녹음 중",  badge: "bg-blue-100 text-blue-700" },
@@ -25,7 +30,10 @@ function formatScheduledAt(scheduledAt: string) {
   return scheduledAt.slice(0, 16).replace("T", " ");
 }
 
-export default function MeetingsPage() {
+export default function MeetingsPage({
+  showCreateButton = true,
+  getMeetingPath = ROUTES.LEADER_MEETING,
+}: MeetingsPageProps) {
   const { meetings, isLoading, error } = useMeetings();
   const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
   const navigate = useNavigate();
@@ -55,7 +63,7 @@ export default function MeetingsPage() {
           </div>
           <button
             onClick={() => setCreateModalOpen(true)}
-            className="inline-flex items-center justify-center rounded-lg bg-[#5F74FA] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#4E62E6]"
+            className={`${showCreateButton ? 'inline-flex' : 'hidden'} items-center justify-center rounded-lg bg-[#5F74FA] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#4E62E6]`}
           >
             새 1on1 만들기
           </button>
@@ -87,7 +95,7 @@ export default function MeetingsPage() {
               ) : nextMeeting ? (
                 <button
                   type="button"
-                  onClick={() => navigate(ROUTES.LEADER_MEETING(String(nextMeeting.meetingId)))}
+                  onClick={() => navigate(getMeetingPath(String(nextMeeting.meetingId)))}
                   className="mt-6 w-full rounded-3xl border border-blue-100 bg-blue-50 p-6 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-100"
                 >
                   <div className="flex flex-wrap items-center justify-between gap-4">
@@ -135,7 +143,7 @@ export default function MeetingsPage() {
                     <button
                       key={meeting.meetingId}
                       type="button"
-                      onClick={() => navigate(ROUTES.LEADER_MEETING(String(meeting.meetingId)))}
+                      onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
                       className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">

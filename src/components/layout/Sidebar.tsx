@@ -148,8 +148,17 @@ export default function Sidebar() {
     });
   };
 
+  const roleNavItems = navItems.map((item) =>
+    user?.role === 'member' && item.path === '/leader/meetings'
+      ? { ...item, path: '/member/meetings' }
+      : item
+  );
+
   const isMeetingActive =
-    location.pathname === '/leader/meetings' || location.pathname.startsWith('/leader/meeting/');
+    location.pathname === '/leader/meetings' ||
+    location.pathname.startsWith('/leader/meeting/') ||
+    location.pathname === '/member/meetings' ||
+    location.pathname.startsWith('/member/meeting/');
 
   return (
     <aside
@@ -260,7 +269,7 @@ export default function Sidebar() {
       </div>
 
       {/* New 1on1 Button */}
-      <div className="px-4 pt-3 pb-2">
+      <div className={user?.role === 'leader' ? 'px-4 pt-3 pb-2' : 'hidden'}>
         <button
           onClick={() => setCreateModalOpen(true)}
           className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
@@ -271,9 +280,11 @@ export default function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 pt-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {roleNavItems.map((item) => {
           const isActive =
-            item.path === '/leader/meetings' ? isMeetingActive : location.pathname === item.path;
+            item.path === '/leader/meetings' || item.path === '/member/meetings'
+              ? isMeetingActive
+              : location.pathname === item.path;
           return (
             <NavLink
               key={item.path}
