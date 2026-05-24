@@ -69,7 +69,7 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
     }
     if (!user?.teamId) return;
     apiClient
-      .get<ApiResponse<TeamMemberApi[]>>(`/v1/teams/${user.teamId}/members`)
+      .get<ApiResponse<TeamMemberApi[]>>(`/api/v1/teams/${user.teamId}/members`)
       .then((res) => setMembers(res.data.data))
       .catch(() => setMembers([]));
   }, [isOpen, user?.teamId]);
@@ -107,7 +107,7 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
         return;
       }
       const res = await apiClient.post<ApiResponse<{ meetingId: number }>>(
-        "/v1/meetings",
+        "/api/v1/meetings",
         {
           teamId: Number(user?.teamId),
           memberId: selected.id,
