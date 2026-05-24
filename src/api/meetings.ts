@@ -41,7 +41,9 @@ export async function uploadRecording(meetingId: string, blob: Blob, durationSec
   const formData = new FormData();
   formData.append('file', blob, 'recording.webm');
   formData.append('durationSec', String(durationSec));
-  await apiClient.post(`/api/v1/meetings/${meetingId}/recording`, formData);
+  await apiClient.post(`/api/v1/meetings/${meetingId}/recording`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
 }
 
 export async function fetchMeetings(teamId: string): Promise<MeetingListItem[]> {

@@ -9,6 +9,7 @@ import PromiseLedgerPage from '@/pages/leader/PromiseLedgerPage';
 import TeamSetupPage from '@/pages/leader/TeamSetupPage';
 import MemberDashboard from '@/pages/member/MemberDashboard';
 import MemberMeetingDetailPage from '@/pages/member/MeetingDetailPage';
+import MemberMeetingsPage from '@/pages/member/MeetingsPage';
 import MemberReportPage from '@/pages/member/MemberReportPage';
 import SurveyPage from '@/pages/member/SurveyPage';
 import TeamJoinPage from '@/pages/member/TeamJoinPage';
@@ -26,6 +27,7 @@ const router = createBrowserRouter([
   { path: '/leader/reports', element: <RequiresTeam><LeaderDashboard /></RequiresTeam> },
   { path: '/leader/overview', element: <RequiresTeam><LeaderDashboard /></RequiresTeam> },
   { path: '/member/dashboard', element: <RequiresTeam><MemberDashboard /></RequiresTeam> },
+  { path: '/member/meetings', element: <RequiresTeam><MemberMeetingsPage /></RequiresTeam> },
   { path: '/member/meeting/:meetingId', element: <RequiresTeam><MemberMeetingDetailPage /></RequiresTeam> },
   { path: '/member/meeting/:meetingId/report', element: <RequiresTeam><MemberReportPage /></RequiresTeam> },
   { path: '/member/survey/:meetingId', element: <RequiresTeam><SurveyPage /></RequiresTeam> },
