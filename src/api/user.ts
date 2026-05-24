@@ -18,7 +18,7 @@ interface MeApiResponse {
 }
 
 export async function fetchMe(): Promise<User> {
-  const { data } = await apiClient.get<MeApiResponse>('/v1/users/me');
+  const { data } = await apiClient.get<MeApiResponse>('/api/v1/users/me');
   const u = data.data;
   return {
     id: String(u.id),

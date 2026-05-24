@@ -67,7 +67,7 @@ export function useSignup() {
         return null;
       }
 
-      const response = await apiClient.post<SignupApiResponse>('/v1/auth/signup', signupPayload);
+      const response = await apiClient.post<SignupApiResponse>('/api/v1/auth/signup', signupPayload);
 
       if (response.data?.success === false) {
         throw new Error(response.data.message || '회원 가입에 실패했습니다.');

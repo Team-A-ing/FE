@@ -26,13 +26,13 @@ export interface SurveyData {
 }
 
 export async function fetchMeetingDetail(meetingId: string): Promise<MeetingDetail> {
-  const res = await apiClient.get<ApiResponse<MeetingDetail>>(`/v1/meetings/${meetingId}`);
+  const res = await apiClient.get<ApiResponse<MeetingDetail>>(`/api/v1/meetings/${meetingId}`);
   return res.data.data;
 }
 
 export async function fetchMemberReport(meetingId: string): Promise<MemberReportData> {
   const res = await apiClient.get<ApiResponse<MemberReportData>>(
-    `/v1/meetings/${meetingId}/member-report`,
+    `/api/v1/meetings/${meetingId}/member-report`,
   );
   return res.data.data;
 }
@@ -41,25 +41,29 @@ export async function uploadRecording(meetingId: string, blob: Blob, durationSec
   const formData = new FormData();
   formData.append('file', blob, 'recording.webm');
   formData.append('durationSec', String(durationSec));
-  await apiClient.post(`/v1/meetings/${meetingId}/recording`, formData);
+  await apiClient.post(`/api/v1/meetings/${meetingId}/recording`, formData);
 }
 
 export async function fetchMeetings(teamId: string): Promise<MeetingListItem[]> {
-  const res = await apiClient.get<ApiResponse<MeetingListItem[]>>(`/v1/meetings`, {
+  const res = await apiClient.get<ApiResponse<MeetingListItem[]>>(`/api/v1/meetings`, {
     params: { teamId },
   });
   return res.data.data;
 }
 
-export async function fetchLeaderReport(meetingId: string): Promise<LeaderReport> {
-  const res = await apiClient.get<ApiResponse<LeaderReport>>(
-    `/v1/meetings/${meetingId}/leader-report`
-  );
 export async function submitSurvey(payload: SubmitSurveyPayload): Promise<void> {
-  await apiClient.post<ApiResponse<void>>('/v1/surveys', payload);
+  await apiClient.post<ApiResponse<void>>('/api/v1/surveys', payload);
 }
 
 export async function fetchSurvey(meetingId: string): Promise<SurveyData> {
-  const res = await apiClient.get<ApiResponse<SurveyData>>(`/v1/surveys/${meetingId}`);
+  const res = await apiClient.get<ApiResponse<SurveyData>>(`/api/v1/surveys/${meetingId}`);
+  return res.data.data;
+}
+
+
+export async function fetchLeaderReport(meetingId: string): Promise<LeaderReport> {
+  const res = await apiClient.get<ApiResponse<LeaderReport>>(
+    `/api/v1/meetings/${meetingId}/leader-report`
+  );
   return res.data.data;
 }
