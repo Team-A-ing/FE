@@ -26,10 +26,10 @@ export default function MeetingDetailPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const pendingUploadRef = useRef<{ blob: Blob; durationSec: number } | null>(null);
   // 서베이 결과 적용 임시 테스트용 
-  const { completed: surveyCompleted } = useSurveyCompletion(
-    meetingId,
-    !loading && !error && localStatus === "pending",
-  );
+  // const { completed: surveyCompleted } = useSurveyCompletion(
+  //   meetingId,
+  //   !loading && !error && localStatus === "pending",
+  // );
 
   useEffect(() => {
     if (meeting?.status === "ANALYZING" || meeting?.status === "RECORDING") {
