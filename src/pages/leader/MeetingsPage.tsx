@@ -40,15 +40,19 @@ export default function MeetingsPage({
   const navigate = useNavigate();
 
   const sortedMeetings = useMemo(
-    () => [...meetings].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt)),
+    () => [...meetings].sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)),
     [meetings]
   );
 
-  const nextMeeting = sortedMeetings.find((m) => m.status === "PENDING");
-  const historyMeetings = sortedMeetings.filter((m) => m.meetingId !== nextMeeting?.meetingId);
+  const now = new Date().toISOString();
+  const futureMeetings = sortedMeetings
+    .filter((m) => m.scheduledAt > now)
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  const nextMeeting = futureMeetings[0] ?? null;
+  const historyMeetings = sortedMeetings.filter((m) => m.scheduledAt <= now);
 
   const uniqueMembers = useMemo(
-    () => Array.from(new Set(meetings.map((m) => m.memberName))),
+    () => Array.from(new Set(meetings.map((m) => m.partnerName))),
     [meetings]
   );
 
@@ -103,7 +107,7 @@ export default function MeetingsPage({
                     <div>
                       <p className="text-sm text-gray-500">{formatScheduledAt(nextMeeting.scheduledAt)}</p>
                       <h3 className="mt-2 text-xl font-semibold text-gray-900">
-                        {nextMeeting.memberName}님과의 1on1
+                        {nextMeeting.partnerName}님과의 1on1
                       </h3>
                       <p className="mt-3 text-sm text-gray-600">Round {nextMeeting.round}</p>
                     </div>
@@ -149,7 +153,7 @@ export default function MeetingsPage({
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">{meeting.memberName}</p>
+                          <p className="text-sm text-gray-500">{meeting.partnerName}</p>
                           <h4 className="text-base font-semibold text-gray-900">
                             {formatScheduledAt(meeting.scheduledAt)}
                           </h4>

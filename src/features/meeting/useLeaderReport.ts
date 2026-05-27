@@ -5,7 +5,7 @@ import type { LeaderReport } from '@/types/report';
 const MOCK_LEADER_REPORT: LeaderReport = {
   meetingId: 10,
   round: 12,
-  memberName: '강다은',
+  partnerName: '강다은',
   memberJobTitle: '시니어 FE 엔지니어',
   meetingDate: '2026-05-08',
   durationSec: 2400,
