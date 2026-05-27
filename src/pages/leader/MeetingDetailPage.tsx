@@ -4,7 +4,6 @@ import PageLayout from "@/components/layout/PageLayout";
 import { useRecorder } from "@/features/meeting/useRecorder";
 import { useUploadRecording } from "@/features/meeting/useUploadRecording";
 import { useMeetingDetail } from "@/features/meeting/useMeetingDetail";
-import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
 import StartMeetingModal from "@/components/ui/StartMeetingModal";
 import EndMeetingModal from "@/components/ui/EndMeetingModal";
 import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
@@ -179,7 +178,7 @@ export default function MeetingDetailPage() {
             <div className="flex-1 flex flex-col items-center justify-center gap-3 px-8 pb-32">
               {(() => {
                 const skipCheck = import.meta.env.VITE_SKIP_SURVEY_CHECK === 'true';
-                const surveyDone = skipCheck || meeting.surveyCompleted === true || surveyCompleted;
+                const surveyDone = skipCheck || meeting.surveyCompleted === true;
                 return (
                   <>
                     <div className={`text-center text-sm ${surveyDone ? 'text-[#5F74FA]' : 'text-gray-400'}`}>
