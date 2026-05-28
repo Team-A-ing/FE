@@ -11,6 +11,7 @@ interface MeetingsPageProps {
 }
 
 const statusMap: Record<string, { label: string; badge: string }> = {
+  CREATED:   { label: "대기 중",  badge: "bg-yellow-100 text-yellow-700" },
   PENDING:   { label: "대기 중",  badge: "bg-yellow-100 text-yellow-700" },
   RECORDING: { label: "녹음 중",  badge: "bg-blue-100 text-blue-700" },
   ANALYZING: { label: "분석 중",  badge: "bg-purple-100 text-purple-700" },
