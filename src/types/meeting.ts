@@ -36,7 +36,7 @@ export interface MeetingDetail {
   status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
   leaderName: string;
   memberName: string;
-  surveyCompleted?: boolean;
+  surveySubmitted?: boolean;
 }
 
 export interface MeetingListItem {
