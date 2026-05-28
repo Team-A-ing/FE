@@ -30,7 +30,7 @@ export interface HonestyGap {
   safetyScore: number;
   gap: number;
   direction: 'OVERREPORT' | 'UNDERREPORT' | 'ALIGNED';
-  riskLevel: 'DANGER' | 'WARNING' | 'SAFE';
+  riskLevel: 'DANGER' | 'WARNING' | 'CAUTION' | 'SAFE';
 }
 
 export interface ExecutionGap {
