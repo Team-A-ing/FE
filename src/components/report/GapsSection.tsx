@@ -3,6 +3,7 @@ import Badge from '@/components/ui/Badge';
 import type { Gaps } from '@/types/report';
 
 const EMPTY_COLOR = '#f3f4f6';
+const ALIGNED_COLOR = '#d1d5db'; // gray-300, inconspicuous shared-score region
 
 const riskBorderColors: Record<string, string> = {
   DANGER: 'border-red-300',
@@ -73,6 +74,47 @@ function GapDonut({ ratio, fillColor, centerLabel, subLabel }: GapDonutProps) {
   );
 }
 
+interface HonestyGapDonutProps {
+  surveyScore: number;
+  safetyScore: number;
+  gap: number;
+  riskLevel: string;
+}
+
+function HonestyGapDonut({ surveyScore, safetyScore, gap, riskLevel }: HonestyGapDonutProps) {
+  const s = Math.max(0, Math.min(100, surveyScore));
+  const f = Math.max(0, Math.min(100, safetyScore));
+  const aligned = Math.min(s, f) / 100;
+  const diff = Math.abs(s - f) / 100;
+  const empty = Math.max(0, 1 - aligned - diff);
+  const gapColor = riskDonutColors[riskLevel] ?? '#22c55e';
+  return (
+    <div className="relative w-[120px] h-[120px] mx-auto">
+      <PieChart width={120} height={120}>
+        <Pie
+          data={[{ value: diff }, { value: aligned }, { value: empty }]}
+          cx={60}
+          cy={60}
+          innerRadius={40}
+          outerRadius={52}
+          startAngle={90}
+          endAngle={-270}
+          dataKey="value"
+          strokeWidth={0}
+        >
+          <Cell fill={gapColor} />
+          <Cell fill={ALIGNED_COLOR} />
+          <Cell fill={EMPTY_COLOR} />
+        </Pie>
+      </PieChart>
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-2xl font-bold text-gray-900 leading-none">{gap}</span>
+        <span className="text-xs text-gray-400 mt-0.5">pt gap</span>
+      </div>
+    </div>
+  );
+}
+
 interface Props {
   data: Gaps;
 }
@@ -81,7 +123,6 @@ export default function GapsSection({ data }: Props) {
   const { alignmentGap, honestyGap, executionGap } = data;
 
   const honestyBorder = riskBorderColors[honestyGap.riskLevel] ?? 'border-gray-200';
-  const honestyDonutColor = riskDonutColors[honestyGap.riskLevel] ?? '#22c55e';
 
   return (
     <div>
@@ -115,11 +156,11 @@ export default function GapsSection({ data }: Props) {
               color={riskBadgeColors[honestyGap.riskLevel] ?? 'gray'}
             />
           </div>
-          <GapDonut
-            ratio={Math.min(honestyGap.gap, 100) / 100}
-            fillColor={honestyDonutColor}
-            centerLabel={String(honestyGap.gap)}
-            subLabel="pt gap"
+          <HonestyGapDonut
+            surveyScore={honestyGap.surveyScore}
+            safetyScore={honestyGap.safetyScore}
+            gap={honestyGap.gap}
+            riskLevel={honestyGap.riskLevel}
           />
           <div className="flex flex-col gap-1 text-xs text-gray-500">
             <div className="flex justify-between">
@@ -131,7 +172,7 @@ export default function GapsSection({ data }: Props) {
               <span className="font-medium text-gray-700">{honestyGap.safetyScore}</span>
             </div>
             <div className="flex justify-between">
-              <span>Direction</span>
+              <span>상태</span>
               <span
                 className={`font-medium ${
                   honestyGap.direction === 'OVERREPORT' ? 'text-orange-500' : 'text-gray-700'
@@ -156,12 +197,12 @@ export default function GapsSection({ data }: Props) {
           />
           <div className="flex flex-col gap-1 text-xs text-gray-500">
             <div className="flex justify-between">
-              <span>Fulfilled</span>
-              <span className="font-medium text-green-600">{executionGap.fulfilled} done</span>
+              <span>이행</span>
+              <span className="font-medium text-green-600">{executionGap.fulfilled} 개</span>
             </div>
             <div className="flex justify-between">
-              <span>Missed</span>
-              <span className="font-bold text-red-500">{executionGap.missed} missed</span>
+              <span>미이행</span>
+              <span className="font-bold text-red-500">{executionGap.missed} 개</span>
             </div>
           </div>
         </div>
