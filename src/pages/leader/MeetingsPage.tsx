@@ -3,22 +3,23 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { useMeetings } from "@/features/meeting/useMeetings";
-import type { MeetingListItem } from "@/types/meeting";
 import { ROUTES } from "@/constants/routes";
-
-type BeStatus = MeetingListItem["status"];
 
 interface MeetingsPageProps {
   showCreateButton?: boolean;
   getMeetingPath?: (meetingId: string) => string;
 }
 
-const statusMap: Record<BeStatus, { label: string; badge: string }> = {
+const statusMap: Record<string, { label: string; badge: string }> = {
   PENDING:   { label: "대기 중",  badge: "bg-yellow-100 text-yellow-700" },
   RECORDING: { label: "녹음 중",  badge: "bg-blue-100 text-blue-700" },
   ANALYZING: { label: "분석 중",  badge: "bg-purple-100 text-purple-700" },
   COMPLETED: { label: "완료",     badge: "bg-emerald-100 text-emerald-700" },
 };
+
+function getStatus(status: string) {
+  return statusMap[status] ?? { label: status, badge: "bg-gray-100 text-gray-600" };
+}
 
 const actionItems = [
   { id: "a1", title: "지난 회의 액션 리뷰", description: "지난 1on1에서 약속한 실행 항목을 확인하세요." },
@@ -39,15 +40,19 @@ export default function MeetingsPage({
   const navigate = useNavigate();
 
   const sortedMeetings = useMemo(
-    () => [...meetings].sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt)),
+    () => [...meetings].sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)),
     [meetings]
   );
 
-  const nextMeeting = sortedMeetings.find((m) => m.status === "PENDING");
-  const historyMeetings = sortedMeetings.filter((m) => m.meetingId !== nextMeeting?.meetingId);
+  const now = new Date().toISOString();
+  const futureMeetings = sortedMeetings
+    .filter((m) => m.scheduledAt > now)
+    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+  const nextMeeting = futureMeetings[0] ?? null;
+  const historyMeetings = sortedMeetings.filter((m) => m.scheduledAt <= now);
 
   const uniqueMembers = useMemo(
-    () => Array.from(new Set(meetings.map((m) => m.memberName))),
+    () => Array.from(new Set(meetings.map((m) => m.partnerName))),
     [meetings]
   );
 
@@ -102,12 +107,12 @@ export default function MeetingsPage({
                     <div>
                       <p className="text-sm text-gray-500">{formatScheduledAt(nextMeeting.scheduledAt)}</p>
                       <h3 className="mt-2 text-xl font-semibold text-gray-900">
-                        {nextMeeting.memberName}님과의 1on1
+                        {nextMeeting.partnerName}님과의 1on1
                       </h3>
                       <p className="mt-3 text-sm text-gray-600">Round {nextMeeting.round}</p>
                     </div>
-                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${statusMap[nextMeeting.status].badge}`}>
-                      {statusMap[nextMeeting.status].label}
+                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatus(nextMeeting.status).badge}`}>
+                      {getStatus(nextMeeting.status).label}
                     </span>
                   </div>
                 </button>
@@ -148,14 +153,14 @@ export default function MeetingsPage({
                     >
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <p className="text-sm text-gray-500">{meeting.memberName}</p>
+                          <p className="text-sm text-gray-500">{meeting.partnerName}</p>
                           <h4 className="text-base font-semibold text-gray-900">
                             {formatScheduledAt(meeting.scheduledAt)}
                           </h4>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusMap[meeting.status].badge}`}>
-                            {statusMap[meeting.status].label}
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatus(meeting.status).badge}`}>
+                            {getStatus(meeting.status).label}
                           </span>
                           <span className="text-sm text-gray-500">Round {meeting.round}</span>
                         </div>

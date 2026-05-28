@@ -4,7 +4,6 @@ import PageLayout from "@/components/layout/PageLayout";
 import { useRecorder } from "@/features/meeting/useRecorder";
 import { useUploadRecording } from "@/features/meeting/useUploadRecording";
 import { useMeetingDetail } from "@/features/meeting/useMeetingDetail";
-import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
 import StartMeetingModal from "@/components/ui/StartMeetingModal";
 import EndMeetingModal from "@/components/ui/EndMeetingModal";
 import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
@@ -26,10 +25,10 @@ export default function MeetingDetailPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const pendingUploadRef = useRef<{ blob: Blob; durationSec: number } | null>(null);
   // 서베이 결과 적용 임시 테스트용 
-  const { completed: surveyCompleted } = useSurveyCompletion(
-    meetingId,
-    !loading && !error && localStatus === "pending",
-  );
+  // const { completed: surveyCompleted } = useSurveyCompletion(
+  //   meetingId,
+  //   !loading && !error && localStatus === "pending",
+  // );
 
   useEffect(() => {
     if (meeting?.status === "ANALYZING" || meeting?.status === "RECORDING") {
@@ -179,7 +178,7 @@ export default function MeetingDetailPage() {
             <div className="flex-1 flex flex-col items-center justify-center gap-3 px-8 pb-32">
               {(() => {
                 const skipCheck = import.meta.env.VITE_SKIP_SURVEY_CHECK === 'true';
-                const surveyDone = skipCheck || meeting.surveyCompleted === true || surveyCompleted;
+                const surveyDone = skipCheck || meeting.surveyCompleted === true;
                 return (
                   <>
                     <div className={`text-center text-sm ${surveyDone ? 'text-[#5F74FA]' : 'text-gray-400'}`}>
@@ -253,7 +252,7 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
   return (
     <div className="px-8 py-4 border-b border-gray-200">
       <div className="flex items-baseline gap-3">
-        <h1 className="text-xl font-bold">{meeting.memberName}님과의 {meeting.round}회차 1on1</h1>
+        <h1 className="text-xl font-bold">{meeting.partnerName}님과의 {meeting.round}회차 1on1</h1>
         <span className="text-sm text-gray-400">{dateStr}</span>
       </div>
       <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
@@ -263,9 +262,9 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
         <span>{meeting.leaderName} (리더)</span>
         <span className="text-gray-300">↔</span>
         <span className="w-6 h-6 rounded-full bg-pink-400 flex items-center justify-center text-white text-xs">
-          {meeting.memberName[0]}
+          {meeting.partnerName[0]}
         </span>
-        <span>{meeting.memberName}</span>
+        <span>{meeting.partnerName}</span>
       </div>
     </div>
   );
