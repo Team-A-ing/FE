@@ -35,7 +35,7 @@ export interface MeetingDetail {
   durationSec: number | null;
   status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
   leaderName: string;
-  partnerName: string;
+  memberName: string;
   surveyCompleted?: boolean;
 }
 
