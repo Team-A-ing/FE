@@ -53,8 +53,8 @@ function GapDonut({ ratio, fillColor, centerLabel, subLabel }: GapDonutProps) {
       <PieChart width={120} height={120}>
         <Pie
           data={[{ value: clamped }, { value: 1 - clamped }]}
-          cx={60}
-          cy={60}
+          cx={55}
+          cy={55}
           innerRadius={40}
           outerRadius={52}
           startAngle={90}
@@ -93,8 +93,8 @@ function HonestyGapDonut({ surveyScore, safetyScore, gap, riskLevel }: HonestyGa
       <PieChart width={120} height={120}>
         <Pie
           data={[{ value: diff }, { value: aligned }, { value: empty }]}
-          cx={60}
-          cy={60}
+          cx={55}
+          cy={55}
           innerRadius={40}
           outerRadius={52}
           startAngle={90}
