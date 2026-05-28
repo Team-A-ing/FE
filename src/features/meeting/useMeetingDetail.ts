@@ -9,7 +9,7 @@ const MOCK_MEETING: MeetingDetail = {
   durationSec: null,
   status: 'PENDING',
   leaderName: '나',
-  partnerName: '김민준',
+  memberName: '김민준',
 };
 
 export function useMeetingDetail(meetingId: string | undefined) {

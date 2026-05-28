@@ -34,11 +34,7 @@ export default function StartMeetingModal({ isOpen, onClose, onStart }: Props) {
             ON
           </div>
         </div>
-
-        <div className="bg-gray-50 rounded-lg p-3 mb-6 text-sm text-gray-500">
-          🎙️ 마이크를 선택하세요
-        </div>
-
+        
         <label className="flex items-center gap-2 mb-6 cursor-pointer">
           <input
             type="checkbox"
