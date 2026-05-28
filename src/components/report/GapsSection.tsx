@@ -83,11 +83,6 @@ export default function GapsSection({ data }: Props) {
   const honestyBorder = riskBorderColors[honestyGap.riskLevel] ?? 'border-gray-200';
   const honestyDonutColor = riskDonutColors[honestyGap.riskLevel] ?? '#22c55e';
 
-  const executionRatio =
-    executionGap.totalPromises === 0
-      ? 0
-      : executionGap.fulfilled / executionGap.totalPromises;
-
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
@@ -154,8 +149,8 @@ export default function GapsSection({ data }: Props) {
             Execution Gap
           </p>
           <GapDonut
-            ratio={executionRatio}
-            fillColor={executionGap.totalPromises === 0 ? '#d1d5db' : '#22c55e'}
+            ratio={executionGap.score / 100}
+            fillColor="#22c55e"
             centerLabel={String(executionGap.score)}
             subLabel="/100"
           />
