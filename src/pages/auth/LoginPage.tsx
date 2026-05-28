@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { ROUTES } from '@/constants/routes';
 import { useLogin } from '@/features/auth/useLogin';
 
 export default function LoginPage() {
@@ -25,7 +26,7 @@ export default function LoginPage() {
       if (user.teamId === '') {
         navigate(user.role === 'leader' ? '/leader/team-setup' : '/member/team-join');
       } else {
-        navigate(user.role === 'leader' ? '/leader/dashboard' : '/member/dashboard');
+        navigate(user.role === 'leader' ? ROUTES.LEADER_DASHBOARD : ROUTES.MEMBER_MEETINGS);
       }
     } catch {
       setErrorMessage('이메일 또는 비밀번호가 올바르지 않습니다');
