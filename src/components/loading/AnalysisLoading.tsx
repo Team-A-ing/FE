@@ -57,7 +57,7 @@ export default function AnalysisLoading({ role, recordingDuration, meetingId, on
       <div className="border-b border-gray-200 px-8 py-4">
         <p className="text-sm text-gray-500">🎙️ 녹음 완료 {formatDuration(recordingDuration)}</p>
         <div className="flex gap-4 mt-4 -mb-[1px]">
-          {["미팅 본문", "요약", "분석"].map((tab, i) => (
+          {["미팅 분석", "리더 맞춤 피드백"].map((tab, i) => (
             <button
               key={tab}
               className={`pb-2 text-sm font-medium ${

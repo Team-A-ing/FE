@@ -103,9 +103,9 @@ export default function MeetingDetailPage() {
   if (localStatus === "uploading") {
     return (
       <PageLayout>
-        <div className="flex flex-col">
+        <div className="flex flex-col h-full">
           <MeetingHeader meeting={meeting} />
-          <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4">
+          <div className="flex-1 flex flex-col items-center justify-center px-8 gap-4 pb-32">
             <div className="w-10 h-10 border-4 border-[#5F74FA] border-t-transparent rounded-full animate-spin" />
             <p className="text-sm text-gray-600">녹음 파일을 업로드 중입니다...</p>
           </div>
@@ -250,12 +250,12 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
   });
 
   return (
-    <div className="px-8 py-4 border-b border-gray-200">
+    <div className="px-8 pt-6 pb-4 border-b border-gray-200">
       <div className="flex items-baseline gap-3">
-        <h1 className="text-xl font-bold">{meeting.memberName}님과의 {meeting.round}회차 1on1</h1>
+        <h1 className="text-2xl font-bold">{meeting.memberName}님과의 {meeting.round}회차 1on1</h1>
         <span className="text-sm text-gray-400">{dateStr}</span>
       </div>
-      <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+      <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
         <span className="w-6 h-6 rounded-full bg-[#5F74FA] flex items-center justify-center text-white text-xs">
           {meeting.leaderName[0]}
         </span>

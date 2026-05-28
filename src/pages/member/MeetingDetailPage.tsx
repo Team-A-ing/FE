@@ -79,9 +79,9 @@ function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
   });
 
   return (
-    <div className="px-8 py-4 border-b border-gray-200">
-      <h1 className="text-xl font-bold">{dateStr}</h1>
-      <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+    <div className="px-8 pt-6 pb-4 border-b border-gray-200">
+      <h1 className="text-2xl font-bold">{dateStr}</h1>
+      <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
         <span className="w-6 h-6 rounded-full bg-[#5F74FA] flex items-center justify-center text-white text-xs">
           {meeting.leaderName[0]}
         </span>
