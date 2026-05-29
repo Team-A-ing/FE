@@ -31,8 +31,8 @@ export default function MeetingDetailPage() {
   // );
 
   useEffect(() => {
-    if (meeting?.status === "ANALYZING" || meeting?.status === "RECORDING") {
-      setLocalStatus(meeting.status.toLowerCase() as LocalStatus);
+    if (meeting?.status === "ANALYZING" || meeting?.status === "TRANSCRIBING") {
+      setLocalStatus("analyzing");
     }
     if (meeting?.status === "COMPLETED") {
       setLocalStatus("completed");

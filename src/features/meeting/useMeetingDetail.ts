@@ -7,7 +7,7 @@ const MOCK_MEETING: MeetingDetail = {
   round: 1,
   scheduledAt: new Date().toISOString(),
   durationSec: null,
-  status: 'PENDING',
+  status: 'CREATED',
   leaderName: '나',
   memberName: '김민준',
 };
