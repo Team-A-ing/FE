@@ -1,4 +1,6 @@
-export type AnalysisStepKey = 'PENDING' | 'STT' | 'NLP' | 'SCORING' | 'FEEDBACK' | 'COMPLETED' | 'FAILED';
+export type AnalysisStepKey =
+  | 'CREATED' | 'TRANSCRIBING' | 'ANALYZING' | 'COMPLETED' | 'FAILED'
+  | 'PENDING' | 'STT' | 'NLP' | 'SCORING' | 'FEEDBACK'; // mock 전용
 
 // 분석 상태 데이터 인터페이스
 export interface AnalysisStatusData {

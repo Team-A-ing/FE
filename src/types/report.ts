@@ -1,7 +1,7 @@
 export interface LeaderReport {
   meetingId: number;
   round: number;
-  partnerName: string;
+  memberName: string;
   memberJobTitle: string;
   meetingDate: string;
   durationSec: number;
