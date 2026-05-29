@@ -56,6 +56,14 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
+function ErrorState({ label }: { label: string }) {
+  return (
+    <p className="text-sm font-medium text-gray-400">
+      {label} 데이터를 불러오지 못했습니다.
+    </p>
+  );
+}
+
 type ChartTab = 'radar' | 'blocker';
 
 export default function LeaderDashboard() {
@@ -97,7 +105,7 @@ export default function LeaderDashboard() {
         )}
         {!teamHealthLoading && teamHealthError && (
           <Card className="mb-5 p-5">
-            <p className="text-sm font-medium text-gray-400">{teamHealthError}</p>
+            <ErrorState label="Team Health Score" />
           </Card>
         )}
         {!teamHealthLoading && teamHealthScore && <TeamHealthScoreCard data={teamHealthScore} />}
@@ -154,7 +162,7 @@ export default function LeaderDashboard() {
                   )}
                   {!radarLoading && radarError && (
                     <div className="flex h-full items-center justify-center">
-                      <span className="text-sm font-medium text-gray-400">{radarError}</span>
+                      <ErrorState label="Team Member Radar" />
                     </div>
                   )}
                   {!radarLoading && !radarError && radarItems.length > 0 && (
@@ -179,7 +187,7 @@ export default function LeaderDashboard() {
                 )}
                 {!blockerLoading && blockerError && (
                   <div className="flex min-h-[220px] items-center justify-center py-4">
-                    <span className="text-sm font-medium text-gray-400">{blockerError}</span>
+                    <ErrorState label="Blocker Pyramid" />
                   </div>
                 )}
                 {!blockerLoading && !blockerError && (
@@ -206,7 +214,7 @@ export default function LeaderDashboard() {
               <p className="text-sm font-medium text-gray-400">Action Feedback을 불러오는 중입니다.</p>
             )}
             {!blockerLoading && blockerError && (
-              <p className="text-sm font-medium text-gray-400">{blockerError}</p>
+              <ErrorState label="Action Feedback" />
             )}
             {!blockerLoading && !blockerError && actionFeedbackItems.length > 0 && (
               <ActionFeedbackList items={actionFeedbackItems} />
