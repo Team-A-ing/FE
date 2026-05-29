@@ -4,13 +4,12 @@ import ScatterRadar from '@/components/charts/ScatterRadar';
 import BlockerPyramid from '@/components/charts/BlockerPyramid';
 import ActionFeedbackList from '@/components/feedback/ActionFeedbackList';
 import TeamHealthScoreCard from '@/components/feedback/TeamHealthScoreCard';
-import BlockerSummaryNote from '@/components/blocker/BlockerSummaryNote';
 import Card from '@/components/ui/Card';
 import Badge from '@/components/ui/Badge';
 import { useRadarData } from '@/features/leader/useRadarData';
-import { useBlockerData } from '@/features/leader/useBlockerData';
-import { useBlockerFeedback } from '@/features/leader/useBlockerFeedback';
+import { useBlockerPyramid } from '@/features/leader/useBlockerPyramid';
 import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
+import { useAuthStore } from '@/stores/authStore';
 import type { CommunicationBalance } from '@/types/analysis';
 
 // ── Talk Ratio Bar ─────────────────────────────────────────────────────────────
@@ -52,16 +51,29 @@ function CommRow({ item }: { item: CommunicationBalance }) {
 type ChartTab = 'radar' | 'blocker';
 
 export default function LeaderDashboard() {
-  const { data: radarData, comms } = useRadarData('team-1');
-  const { keywords: blockerKeywords } = useBlockerData('team-1');
-  const { blockerFeedback } = useBlockerFeedback('team-1');
-  const { data: teamHealthScore } = useTeamHealthScore('team-1');
+  const teamId = useAuthStore((state) => state.user?.teamId);
+  const {
+    data: radarData,
+    comms,
+    loading: radarLoading,
+    error: radarError,
+  } = useRadarData(teamId);
+  const {
+    data: blockerPyramid,
+    loading: blockerLoading,
+    error: blockerError,
+  } = useBlockerPyramid(teamId);
+  const {
+    data: teamHealthScore,
+    loading: teamHealthLoading,
+    error: teamHealthError,
+  } = useTeamHealthScore(teamId);
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
   const actionFeedbackItems = useMemo(() => {
-    if (!blockerFeedback) return [];
+    if (!blockerPyramid) return [];
 
-    return blockerFeedback.actionPrescriptions;
-  }, [blockerFeedback]);
+    return blockerPyramid.actionPrescriptions;
+  }, [blockerPyramid]);
 
   return (
     <PageLayout>
@@ -69,7 +81,17 @@ export default function LeaderDashboard() {
         {/* Page Title */}
         <h1 className="text-xl font-bold text-gray-900 mb-5">팀 인사이트 대시보드</h1>
 
-        {teamHealthScore && <TeamHealthScoreCard data={teamHealthScore} />}
+        {teamHealthLoading && (
+          <Card className="mb-5 p-5">
+            <p className="text-sm font-medium text-gray-500">Team Health Score를 불러오는 중입니다.</p>
+          </Card>
+        )}
+        {!teamHealthLoading && teamHealthError && (
+          <Card className="mb-5 p-5">
+            <p className="text-sm font-medium text-red-500">{teamHealthError}</p>
+          </Card>
+        )}
+        {!teamHealthLoading && teamHealthScore && <TeamHealthScoreCard data={teamHealthScore} />}
 
         {/* ── Main Content Row ── */}
         <div className="flex gap-4">
@@ -111,26 +133,45 @@ export default function LeaderDashboard() {
 
                 {/* Scatter Chart */}
                 <div style={{ height: 300 }}>
-                  <ScatterRadar
-                    data={radarData}
-                    onMemberClick={(id) => console.log('clicked', id)}
-                  />
+                  {radarLoading && (
+                    <div className="flex h-full items-center justify-center">
+                      <span className="text-sm font-medium text-gray-400">Team Member Radar를 불러오는 중입니다.</span>
+                    </div>
+                  )}
+                  {!radarLoading && radarError && (
+                    <div className="flex h-full items-center justify-center">
+                      <span className="text-sm font-medium text-red-500">{radarError}</span>
+                    </div>
+                  )}
+                  {!radarLoading && !radarError && (
+                    <ScatterRadar
+                      data={radarData}
+                      onMemberClick={(id) => console.log('clicked', id)}
+                    />
+                  )}
                 </div>
               </>
             )}
 
             {activeTab === 'blocker' && (
               <div className="flex flex-col gap-5">
-                <div className="py-4">
-                  <BlockerPyramid
-                    items={blockerKeywords}
-                  />
-                </div>
-
-                {blockerFeedback && (
-                  <BlockerSummaryNote summary={blockerFeedback.summary} />
+                {blockerLoading && (
+                  <div className="flex min-h-[220px] items-center justify-center py-4">
+                    <span className="text-sm font-medium text-gray-400">Blocker Pyramid를 불러오는 중입니다.</span>
+                  </div>
                 )}
-
+                {!blockerLoading && blockerError && (
+                  <div className="flex min-h-[220px] items-center justify-center py-4">
+                    <span className="text-sm font-medium text-red-500">{blockerError}</span>
+                  </div>
+                )}
+                {!blockerLoading && !blockerError && (
+                  <div className="py-4">
+                    <BlockerPyramid
+                      items={blockerPyramid?.blockerKeywords ?? []}
+                    />
+                  </div>
+                )}
               </div>
               
             )}
@@ -140,7 +181,18 @@ export default function LeaderDashboard() {
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
               Action Feedback
             </p>
-            <ActionFeedbackList items={actionFeedbackItems} />
+            {blockerLoading && (
+              <p className="text-sm font-medium text-gray-400">Action Feedback을 불러오는 중입니다.</p>
+            )}
+            {!blockerLoading && blockerError && (
+              <p className="text-sm font-medium text-red-500">{blockerError}</p>
+            )}
+            {!blockerLoading && !blockerError && actionFeedbackItems.length > 0 && (
+              <ActionFeedbackList items={actionFeedbackItems} />
+            )}
+            {!blockerLoading && !blockerError && actionFeedbackItems.length === 0 && (
+              <p className="text-sm font-medium text-gray-400">표시할 Action Feedback이 없습니다.</p>
+            )}
           </Card>
           </div>
 
