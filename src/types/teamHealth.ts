@@ -1,14 +1,8 @@
-export type TeamHealthTrend = 'IMPROVING' | 'DECLINING' | 'UNCHANGED';
-
-export interface TeamHealthHistoryPoint {
-  yearMonth: string;
-  score: number;
-}
+export type TeamHealthTrend = 'IMPROVING' | 'STABLE' | 'DECLINING';
 
 export interface TeamHealthScoreData {
-  currentScore: number;
-  previousScore: number;
-  diff: number;
+  teamId: number;
+  teamHealthScore: number;
   trend: TeamHealthTrend;
-  history: TeamHealthHistoryPoint[];
+  alerts: string[];
 }
