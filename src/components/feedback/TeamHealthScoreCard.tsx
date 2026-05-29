@@ -23,7 +23,8 @@ const TEAM_HEALTH_BAR_COLOR = '#2dd4bf';
 export default function TeamHealthScoreCard({ data }: TeamHealthScoreCardProps) {
   const [alertsOpen, setAlertsOpen] = useState(false);
   const score = Math.round(data.teamHealthScore);
-  const hasAlerts = data.alerts.length > 0;
+  const alerts = data.alerts ?? [];
+  const hasAlerts = alerts.length > 0;
 
   return (
     <Card className="mb-5 p-5">
@@ -57,7 +58,7 @@ export default function TeamHealthScoreCard({ data }: TeamHealthScoreCardProps) 
             className="flex w-full items-center justify-between text-left text-sm font-semibold text-gray-700"
             aria-expanded={alertsOpen}
           >
-            <span>이상 탐지 알림 {hasAlerts ? data.alerts.length : 0}건</span>
+            <span>이상 탐지 알림 {hasAlerts ? alerts.length : 0}건</span>
             <span className="text-xs text-gray-400">{alertsOpen ? '접기' : '펼치기'}</span>
           </button>
 
@@ -65,7 +66,7 @@ export default function TeamHealthScoreCard({ data }: TeamHealthScoreCardProps) 
             <div className="mt-3">
               {hasAlerts ? (
                 <ul className="space-y-2 text-sm leading-relaxed text-gray-700">
-                  {data.alerts.map((alert) => (
+                  {alerts.map((alert) => (
                     <li key={alert}>
                       {alert}
                     </li>
