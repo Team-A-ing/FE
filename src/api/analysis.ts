@@ -6,6 +6,6 @@ interface AnalysisStatusResponse {
 }
 
 export async function fetchAnalysisStatus(meetingId: string): Promise<AnalysisStatusData> {
-  const { data } = await apiClient.get<AnalysisStatusResponse>(`/api/v1/analysis/${meetingId}/status`);
+  const { data } = await apiClient.get<AnalysisStatusResponse>(`/api/v1/meetings/${meetingId}/status`);
   return data.data;
 }
