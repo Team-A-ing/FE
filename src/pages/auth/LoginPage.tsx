@@ -26,7 +26,7 @@ export default function LoginPage() {
       if (user.teamId === '') {
         navigate(user.role === 'leader' ? '/leader/team-setup' : '/member/team-join');
       } else {
-        navigate(user.role === 'leader' ? ROUTES.LEADER_DASHBOARD : ROUTES.MEMBER_MEETINGS);
+        navigate(user.role === 'leader' ? ROUTES.LEADER_MEETINGS : ROUTES.MEMBER_MEETINGS);
       }
     } catch {
       setErrorMessage('이메일 또는 비밀번호가 올바르지 않습니다');
