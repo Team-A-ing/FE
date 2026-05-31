@@ -48,6 +48,22 @@ function CommRow({ item }: { item: CommunicationBalance }) {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-[160px] items-center justify-center py-4">
+      <p className="text-sm font-medium text-gray-400">{message}</p>
+    </div>
+  );
+}
+
+function ErrorState({ label }: { label: string }) {
+  return (
+    <p className="text-sm font-medium text-gray-400">
+      {label} 데이터를 불러오지 못했습니다.
+    </p>
+  );
+}
+
 type ChartTab = 'radar' | 'blocker';
 
 export default function LeaderDashboard() {
@@ -69,10 +85,11 @@ export default function LeaderDashboard() {
     error: teamHealthError,
   } = useTeamHealthScore(teamId);
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
+  const radarItems = radarData ?? [];
+  const communicationItems = comms ?? [];
+  const blockerKeywords = blockerPyramid?.blockerKeywords ?? [];
   const actionFeedbackItems = useMemo(() => {
-    if (!blockerPyramid) return [];
-
-    return blockerPyramid.actionPrescriptions;
+    return blockerPyramid?.actionPrescriptions ?? [];
   }, [blockerPyramid]);
 
   return (
@@ -88,10 +105,15 @@ export default function LeaderDashboard() {
         )}
         {!teamHealthLoading && teamHealthError && (
           <Card className="mb-5 p-5">
-            <p className="text-sm font-medium text-red-500">{teamHealthError}</p>
+            <ErrorState label="Team Health Score" />
           </Card>
         )}
         {!teamHealthLoading && teamHealthScore && <TeamHealthScoreCard data={teamHealthScore} />}
+        {!teamHealthLoading && !teamHealthError && !teamHealthScore && (
+          <Card className="mb-5 p-5">
+            <p className="text-sm font-medium text-gray-400">아직 Team Health Score를 계산할 데이터가 없습니다.</p>
+          </Card>
+        )}
 
         {/* ── Main Content Row ── */}
         <div className="flex gap-4">
@@ -140,14 +162,17 @@ export default function LeaderDashboard() {
                   )}
                   {!radarLoading && radarError && (
                     <div className="flex h-full items-center justify-center">
-                      <span className="text-sm font-medium text-red-500">{radarError}</span>
+                      <ErrorState label="Team Member Radar" />
                     </div>
                   )}
-                  {!radarLoading && !radarError && (
+                  {!radarLoading && !radarError && radarItems.length > 0 && (
                     <ScatterRadar
-                      data={radarData}
+                      data={radarItems}
                       onMemberClick={(id) => console.log('clicked', id)}
                     />
+                  )}
+                  {!radarLoading && !radarError && radarItems.length === 0 && (
+                    <EmptyState message="아직 표시할 팀원 분석 데이터가 없습니다." />
                   )}
                 </div>
               </>
@@ -162,14 +187,18 @@ export default function LeaderDashboard() {
                 )}
                 {!blockerLoading && blockerError && (
                   <div className="flex min-h-[220px] items-center justify-center py-4">
-                    <span className="text-sm font-medium text-red-500">{blockerError}</span>
+                    <ErrorState label="Blocker Pyramid" />
                   </div>
                 )}
                 {!blockerLoading && !blockerError && (
                   <div className="py-4">
-                    <BlockerPyramid
-                      items={blockerPyramid?.blockerKeywords ?? []}
-                    />
+                    {blockerKeywords.length > 0 ? (
+                      <BlockerPyramid
+                        items={blockerKeywords}
+                      />
+                    ) : (
+                      <EmptyState message="아직 집계된 블로커 키워드가 없습니다." />
+                    )}
                   </div>
                 )}
               </div>
@@ -185,13 +214,13 @@ export default function LeaderDashboard() {
               <p className="text-sm font-medium text-gray-400">Action Feedback을 불러오는 중입니다.</p>
             )}
             {!blockerLoading && blockerError && (
-              <p className="text-sm font-medium text-red-500">{blockerError}</p>
+              <ErrorState label="Action Feedback" />
             )}
             {!blockerLoading && !blockerError && actionFeedbackItems.length > 0 && (
               <ActionFeedbackList items={actionFeedbackItems} />
             )}
             {!blockerLoading && !blockerError && actionFeedbackItems.length === 0 && (
-              <p className="text-sm font-medium text-gray-400">표시할 Action Feedback이 없습니다.</p>
+              <EmptyState message="아직 제안할 Action Feedback이 없습니다." />
             )}
           </Card>
           </div>
@@ -204,9 +233,13 @@ export default function LeaderDashboard() {
                 1on1 소통 균형
               </p>
               <div className="flex flex-col">
-                {comms.map((item) => (
-                  <CommRow key={item.memberId} item={item} />
-                ))}
+                {communicationItems.length > 0 ? (
+                  communicationItems.map((item) => (
+                    <CommRow key={item.memberId} item={item} />
+                  ))
+                ) : (
+                  <p className="py-4 text-sm font-medium text-gray-400">아직 1on1 소통 균형 데이터가 없습니다.</p>
+                )}
               </div>
             </Card>
           </div>

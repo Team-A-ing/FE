@@ -28,12 +28,14 @@ export interface MeetingData {
 
 export type AnalysisStep = 0 | 1 | 2 | 3;
 
+export type MeetingApiStatus = "CREATED" | "TRANSCRIBING" | "ANALYZING" | "COMPLETED" | "FAILED";
+
 export interface MeetingDetail {
   meetingId: number;
   round: number;
   scheduledAt: string;
   durationSec: number | null;
-  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
+  status: MeetingApiStatus;
   leaderName: string;
   memberName: string;
   surveySubmitted?: boolean;
@@ -45,5 +47,5 @@ export interface MeetingListItem {
   partnerName: string;
   scheduledAt: string;
   durationSec: number | null;
-  status: "PENDING" | "RECORDING" | "ANALYZING" | "COMPLETED";
+  status: MeetingApiStatus;
 }
