@@ -7,6 +7,9 @@ import TalkRatioSection from './TalkRatioSection';
 import FeedbackSection from './FeedbackSection';
 import ActionPlanSection from './ActionPlanSection';
 import PromisesSection from './PromisesSection';
+import type { ActionPlan } from '@/types/report';
+
+const EMPTY_ACTION_PLANS: ActionPlan[] = [];
 
 type ReportTab = 'analysis' | 'feedback';
 
@@ -17,7 +20,7 @@ interface Props {
 export default function LeaderReportView({ meetingId }: Props) {
   const { report, loading, error, retry } = useLeaderReport(meetingId);
   const [activeTab, setActiveTab] = useState<ReportTab>('analysis');
-  const actionPlan = useActionPlan(report?.nextActionPlans ?? []);
+  const actionPlan = useActionPlan(report?.nextActionPlans ?? EMPTY_ACTION_PLANS);
 
   if (loading) {
     return (
