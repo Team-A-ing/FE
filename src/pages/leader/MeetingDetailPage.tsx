@@ -10,6 +10,7 @@ import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
 import LeaderReportView from "@/components/report/LeaderReportView";
+import IotPanel from "@/components/iot/IotPanel";
 
 type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "completed" | "error";
 
@@ -240,6 +241,7 @@ export default function MeetingDetailPage() {
               placeholder="나만 볼 수 있는 메모입니다."
             />
           </div>
+          <IotPanel meetingId={meetingId} isRecording={localStatus === 'recording'} />
         </div>
 
         <StartMeetingModal isOpen={showStart} onClose={() => setShowStart(false)} onStart={handleStartRecording} />
