@@ -43,12 +43,17 @@ const statusLabels: Record<MemberPromiseStatus, string> = {
   DONE: '완료',
 };
 
-function formatDuration(durationSec: number) {
+function formatDuration(durationSec: number | null) {
+  if (!durationSec || durationSec <= 0) return '-';
   return `${Math.floor(durationSec / 60)}분`;
 }
 
 function formatDate(date: string) {
-  return new Date(`${date}T00:00:00`).toLocaleDateString('ko-KR', {
+  const normalizedDate = date.slice(0, 10);
+  const parsedDate = new Date(`${normalizedDate}T00:00:00`);
+  if (Number.isNaN(parsedDate.getTime())) return '-';
+
+  return parsedDate.toLocaleDateString('ko-KR', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
@@ -189,11 +194,15 @@ export default function MemberReportPage() {
             </span>
           </div>
           <Card className="p-4">
-            <div className="grid gap-3 lg:grid-cols-2">
-              {report.confirmedAchievements.map((achievement) => (
-                <AchievementCard key={achievement.careerEventId} achievement={achievement} />
-              ))}
-            </div>
+            {report.confirmedAchievements.length === 0 ? (
+              <p className="py-6 text-center text-sm text-gray-500">분석 결과가 없습니다.</p>
+            ) : (
+              <div className="grid gap-3 lg:grid-cols-2">
+                {report.confirmedAchievements.map((achievement) => (
+                  <AchievementCard key={achievement.careerEventId} achievement={achievement} />
+                ))}
+              </div>
+            )}
           </Card>
         </section>
 
@@ -203,11 +212,15 @@ export default function MemberReportPage() {
             <span className="text-sm font-semibold text-gray-500">{sortedPromises.length}개</span>
           </div>
           <Card className="p-4">
-            <ul className="space-y-3">
-              {sortedPromises.map((promise) => (
-                <PromiseItem key={promise.promiseId} promise={promise} />
-              ))}
-            </ul>
+            {sortedPromises.length === 0 ? (
+              <p className="py-6 text-center text-sm text-gray-500">분석 결과가 없습니다.</p>
+            ) : (
+              <ul className="space-y-3">
+                {sortedPromises.map((promise) => (
+                  <PromiseItem key={promise.promiseId} promise={promise} />
+                ))}
+              </ul>
+            )}
           </Card>
         </section>
       </div>

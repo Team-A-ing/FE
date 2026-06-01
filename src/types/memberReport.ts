@@ -14,7 +14,7 @@ export interface MemberReportData {
   round: number;
   leaderName: string;
   meetingDate: string;
-  durationSec: number;
+  durationSec: number | null;
   confirmedAchievements: ConfirmedAchievement[];
   leaderPromises: LeaderPromise[];
 }
