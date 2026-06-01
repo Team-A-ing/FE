@@ -50,11 +50,30 @@ function normalizeDate(value: unknown, fallback: string) {
   return typeof value === 'string' && value.trim() !== '' ? value : fallback;
 }
 
+function normalizeReportDate(value: unknown, fallback: string) {
+  const normalized = normalizeDate(value, fallback).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : fallback.slice(0, 10);
+}
+
+function normalizeDurationSec(value: unknown) {
+  const duration = typeof value === 'string' ? Number(value) : value;
+  return typeof duration === 'number' && Number.isFinite(duration) && duration > 0
+    ? duration
+    : null;
+}
+
 function normalizeMemberReport(report: MemberReportData): MemberReportData {
-  const fallbackDate = normalizeDate(report.meetingDate, new Date().toISOString()).slice(0, 10);
+  const rawReport = report as MemberReportData & {
+    durationSec?: unknown;
+    meetingDate?: unknown;
+  };
+  const fallbackDate = new Date().toISOString().slice(0, 10);
+  const meetingDate = normalizeReportDate(rawReport.meetingDate, fallbackDate);
 
   return {
     ...report,
+    meetingDate,
+    durationSec: normalizeDurationSec(rawReport.durationSec),
     leaderPromises: (report.leaderPromises ?? []).map((promise, index) => {
       const rawPromise = promise as LeaderPromise & {
         category?: unknown;
@@ -69,7 +88,7 @@ function normalizeMemberReport(report: MemberReportData): MemberReportData {
         category: isPromiseCategory(rawPromise.category)
           ? rawPromise.category
           : DEFAULT_PROMISE_CATEGORY,
-        dueDate: normalizeDate(rawPromise.dueDate, fallbackDate),
+        dueDate: normalizeReportDate(rawPromise.dueDate, meetingDate),
         status: isPromiseStatus(rawPromise.status) ? rawPromise.status : DEFAULT_PROMISE_STATUS,
       };
     }),
