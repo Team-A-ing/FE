@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useMeetingStore } from "@/stores/meetingStore";
@@ -45,12 +45,23 @@ export default function MeetingsPage({
     [meetings]
   );
 
-  const now = new Date().toISOString();
+  const [showAllFuture, setShowAllFuture] = useState(false);
+  const [historyPage, setHistoryPage] = useState(1);
+
+  const now = new Date();
+  const isWithinGrace = (scheduledAt: string) => {
+    const d = new Date(scheduledAt);
+    d.setMinutes(d.getMinutes() + 30);
+    return d > now;
+  };
+
   const futureMeetings = sortedMeetings
-    .filter((m) => m.scheduledAt > now)
+    .filter((m) => isWithinGrace(m.scheduledAt) && m.status !== 'COMPLETED')
     .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
-  const nextMeeting = futureMeetings[0] ?? null;
-  const historyMeetings = sortedMeetings.filter((m) => m.scheduledAt <= now);
+  const visibleFutureMeetings = showAllFuture ? futureMeetings : futureMeetings.slice(0, 3);
+  const historyMeetings = sortedMeetings.filter(
+    (m) => !isWithinGrace(m.scheduledAt) || m.status === 'COMPLETED'
+  );
 
   const uniqueMembers = useMemo(
     () => Array.from(new Set(meetings.map((m) => m.partnerName))),
@@ -90,7 +101,7 @@ export default function MeetingsPage({
                   <h2 className="mt-2 text-2xl font-semibold text-gray-900">다음 1on1 일정</h2>
                 </div>
                 <span className="rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600">
-                  총 {meetings.length}개
+                  총 {futureMeetings.length}건
                 </span>
               </div>
 
@@ -98,28 +109,42 @@ export default function MeetingsPage({
                 <div className="mt-6 rounded-3xl border border-gray-200 bg-gray-50 p-8 text-center text-gray-400 animate-pulse">
                   불러오는 중...
                 </div>
-              ) : nextMeeting ? (
-                <button
-                  type="button"
-                  onClick={() => navigate(getMeetingPath(String(nextMeeting.meetingId)))}
-                  className="mt-6 w-full rounded-3xl border border-blue-100 bg-blue-50 p-6 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-100"
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">{formatScheduledAt(nextMeeting.scheduledAt)}</p>
-                      <h3 className="mt-2 text-xl font-semibold text-gray-900">
-                        {nextMeeting.partnerName}님과의 1on1
-                      </h3>
-                      <p className="mt-3 text-sm text-gray-600">Round {nextMeeting.round}</p>
-                    </div>
-                    <span className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatus(nextMeeting.status).badge}`}>
-                      {getStatus(nextMeeting.status).label}
-                    </span>
-                  </div>
-                </button>
-              ) : (
+              ) : futureMeetings.length === 0 ? (
                 <div className="mt-6 rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
                   예정된 미팅이 없습니다.
+                </div>
+              ) : (
+                <div className="mt-6 space-y-3">
+                  {visibleFutureMeetings.map((meeting) => (
+                    <button
+                      key={meeting.meetingId}
+                      type="button"
+                      onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
+                      className="w-full rounded-3xl border border-blue-100 bg-blue-50 p-6 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-100"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500">{formatScheduledAt(meeting.scheduledAt)}</p>
+                          <h3 className="mt-2 text-xl font-semibold text-gray-900">
+                            {meeting.partnerName}님과의 1on1
+                          </h3>
+                          <p className="mt-3 text-sm text-gray-600">Round {meeting.round}</p>
+                        </div>
+                        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatus(meeting.status).badge}`}>
+                          {getStatus(meeting.status).label}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                  {futureMeetings.length > 3 && (
+                    <button
+                      type="button"
+                      onClick={() => setShowAllFuture((prev) => !prev)}
+                      className="w-full rounded-3xl border border-gray-200 bg-gray-50 py-3 text-sm font-medium text-gray-500 transition hover:bg-gray-100"
+                    >
+                      {showAllFuture ? '접기 ▲' : `${futureMeetings.length - 3}개 더 보기 ▼`}
+                    </button>
+                  )}
                 </div>
               )}
             </section>
