@@ -63,6 +63,13 @@ export default function MeetingsPage({
     (m) => !isWithinGrace(m.scheduledAt) || m.status === 'COMPLETED'
   );
 
+  const HISTORY_PAGE_SIZE = 10;
+  const totalHistoryPages = Math.max(1, Math.ceil(historyMeetings.length / HISTORY_PAGE_SIZE));
+  const paginatedHistory = historyMeetings.slice(
+    (historyPage - 1) * HISTORY_PAGE_SIZE,
+    historyPage * HISTORY_PAGE_SIZE
+  );
+
   const uniqueMembers = useMemo(
     () => Array.from(new Set(meetings.map((m) => m.partnerName))),
     [meetings]
@@ -169,31 +176,56 @@ export default function MeetingsPage({
                   아직 기록된 미팅이 없습니다.
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {historyMeetings.map((meeting) => (
-                    <button
-                      key={meeting.meetingId}
-                      type="button"
-                      onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
-                      className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
-                    >
-                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <p className="text-sm text-gray-500">{meeting.partnerName}</p>
-                          <h4 className="text-base font-semibold text-gray-900">
-                            {formatScheduledAt(meeting.scheduledAt)}
-                          </h4>
+                <>
+                  <div className="space-y-3">
+                    {paginatedHistory.map((meeting) => (
+                      <button
+                        key={meeting.meetingId}
+                        type="button"
+                        onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
+                        className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
+                      >
+                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                          <div>
+                            <p className="text-sm text-gray-500">{meeting.partnerName}</p>
+                            <h4 className="text-base font-semibold text-gray-900">
+                              {formatScheduledAt(meeting.scheduledAt)}
+                            </h4>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatus(meeting.status).badge}`}>
+                              {getStatus(meeting.status).label}
+                            </span>
+                            <span className="text-sm text-gray-500">Round {meeting.round}</span>
+                          </div>
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatus(meeting.status).badge}`}>
-                            {getStatus(meeting.status).label}
-                          </span>
-                          <span className="text-sm text-gray-500">Round {meeting.round}</span>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                      </button>
+                    ))}
+                  </div>
+                  {totalHistoryPages > 1 && (
+                    <div className="mt-4 flex items-center justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setHistoryPage((p) => Math.max(1, p - 1))}
+                        disabled={historyPage === 1}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        ◀ 이전
+                      </button>
+                      <span className="text-sm text-gray-500">
+                        {historyPage} / {totalHistoryPages}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setHistoryPage((p) => Math.min(totalHistoryPages, p + 1))}
+                        disabled={historyPage === totalHistoryPages}
+                        className="rounded-full border border-gray-200 px-3 py-1 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        다음 ▶
+                      </button>
+                    </div>
+                  )}
+                </>
               )}
             </section>
           </div>
