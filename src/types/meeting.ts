@@ -49,3 +49,38 @@ export interface MeetingListItem {
   durationSec: number | null;
   status: MeetingApiStatus;
 }
+
+export type MeetingQuadrant = 'STABLE' | 'SILENT_RISK' | 'EXPLICIT_RISK' | 'CONSERVATIVE';
+
+export interface PreBriefingData {
+  meetingId: number;
+  round: number;
+  memberName: string;
+  memberJobTitle: string;
+  scheduledAt: string;
+  survey: {
+    submitted: boolean;
+    energyLevel: number | null;
+    issues: string[];
+    desiredRoles: string[];
+    surveyScore: number | null;
+  };
+  lastMeeting: {
+    safetyScore: number;
+    safetyScoreChange: number | null;
+    quadrant: MeetingQuadrant | null;
+    honestyGap: {
+      direction: string;
+      riskLevel: string;
+    } | null;
+    speechActAlerts: string[];
+    blockerKeywords: string[];
+  } | null;
+  pendingPromises: {
+    promiseId: number;
+    content: string;
+    dueDate: string | null;
+    overdue: boolean;
+  }[];
+  recommendedTopics: string[];
+}

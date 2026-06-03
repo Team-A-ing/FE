@@ -1,6 +1,6 @@
 import apiClient from './client';
 import type { ApiResponse } from './types';
-import type { MeetingDetail, MeetingListItem } from '@/types/meeting';
+import type { MeetingDetail, MeetingListItem, PreBriefingData } from '@/types/meeting';
 import type {
   LeaderPromise,
   MemberPromiseCategory,
@@ -97,6 +97,13 @@ function normalizeMemberReport(report: MemberReportData): MemberReportData {
 
 export async function fetchMeetingDetail(meetingId: string): Promise<MeetingDetail> {
   const res = await apiClient.get<ApiResponse<MeetingDetail>>(`/api/v1/meetings/${meetingId}`);
+  return res.data.data;
+}
+
+export async function fetchPreBriefing(meetingId: string): Promise<PreBriefingData> {
+  const res = await apiClient.get<ApiResponse<PreBriefingData>>(
+    `/api/v1/meetings/${meetingId}/pre-briefing`,
+  );
   return res.data.data;
 }
 
