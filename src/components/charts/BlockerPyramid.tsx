@@ -1,5 +1,6 @@
 import { useMemo, useState, type MouseEvent } from 'react';
-import type { BlockerPyramidColor, BlockerPyramidItem } from '@/types/blocker';
+import { getBlockerRankColor } from '@/utils/blockerColors';
+import type { BlockerPyramidItem } from '@/types/blocker';
 
 export interface BlockerPyramidProps {
   items: BlockerPyramidItem[];
@@ -13,13 +14,6 @@ type TooltipState = {
   x: number;
   y: number;
 } | null;
-
-const PALETTE: BlockerPyramidColor[] = [
-  { bg: '#FFECEF', text: '#FA5252', border: '#F8B4C0' },
-  { bg: '#FEFCE8', text: '#eb9925', border: '#FDE68A' },
-  { bg: '#EAF5FF', text: '#2563EB', border: '#BBD7FF' },
-  { bg: '#F4F4F5', text: '#52525B', border: '#D4D4D8' },
-];
 
 const TAG_ROW_PATTERN = [1, 3, 6];
 
@@ -40,13 +34,6 @@ function getRank(sortedItems: BlockerPyramidItem[], index: number) {
 
     return rank;
   }, 1);
-}
-
-export function getBlockerRankColor(rank: number) {
-  if (rank === 1) return PALETTE[0];
-  if (rank === 2 || rank === 3 || rank === 4) return PALETTE[1];
-  if (rank === 5 || rank === 6 || rank === 7) return PALETTE[2];
-  return PALETTE[3];
 }
 
 function getPillStyle(
