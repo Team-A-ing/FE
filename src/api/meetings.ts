@@ -55,6 +55,12 @@ function normalizeReportDate(value: unknown, fallback: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : fallback.slice(0, 10);
 }
 
+function normalizeSeverity(value: unknown): 'ERROR' | 'WARNING' | 'SUCCESS' {
+  const upper = typeof value === 'string' ? value.toUpperCase() : '';
+  if (upper === 'ERROR' || upper === 'WARNING' || upper === 'SUCCESS') return upper;
+  return 'WARNING';
+}
+
 function normalizeDurationSec(value: unknown) {
   const duration = typeof value === 'string' ? Number(value) : value;
   return typeof duration === 'number' && Number.isFinite(duration) && duration > 0
@@ -144,5 +150,12 @@ export async function fetchLeaderReport(meetingId: string): Promise<LeaderReport
   const res = await apiClient.get<ApiResponse<LeaderReport>>(
     `/api/v1/meetings/${meetingId}/leader-report`
   );
-  return res.data.data;
+  const data = res.data.data;
+  return {
+    ...data,
+    feedbacks: (data.feedbacks ?? []).map((fb) => ({
+      ...fb,
+      severity: normalizeSeverity((fb as unknown as Record<string, unknown>).severity),
+    })),
+  };
 }
