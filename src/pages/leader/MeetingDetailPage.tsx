@@ -11,6 +11,8 @@ import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
 import LeaderReportView from "@/components/report/LeaderReportView";
 import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
+import PreBriefingCard from "@/components/meeting/PreBriefingCard";
+import { usePreBriefing } from "@/features/meeting/usePreBriefing";
 
 type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "completed" | "error";
 
@@ -18,6 +20,7 @@ export default function MeetingDetailPage() {
   const { meetingId } = useParams<{ meetingId: string }>();
   const navigate = useNavigate();
   const { meeting, loading, error } = useMeetingDetail(meetingId);
+  const { data: briefing, loading: briefingLoading, error: briefingError, retry: retryBriefing } = usePreBriefing(meetingId);
   const recorder = useRecorder();
   const { upload } = useUploadRecording();
   const [showStart, setShowStart] = useState(false);
@@ -175,7 +178,33 @@ export default function MeetingDetailPage() {
           <MeetingHeader meeting={meeting} />
 
           {!recorder.isRecording && localStatus === "pending" && (
-            <div className="flex-1 flex flex-col items-center justify-center gap-3 px-8 pb-32">
+            <div className="flex-1 flex flex-col items-center justify-center gap-4 px-8 py-8 pb-32">
+              {briefingLoading && (
+                <div className="w-full max-w-[560px] rounded-xl border border-gray-100 bg-white px-6 py-5 shadow-sm">
+                  <div className="h-5 w-40 rounded bg-gray-100" />
+                  <div className="mt-4 grid grid-cols-3 gap-2.5">
+                    <div className="h-20 rounded-lg bg-gray-100" />
+                    <div className="h-20 rounded-lg bg-gray-100" />
+                    <div className="h-20 rounded-lg bg-gray-100" />
+                  </div>
+                  <div className="mt-4 h-16 rounded-lg bg-gray-100" />
+                </div>
+              )}
+              {!briefingLoading && briefing && <PreBriefingCard data={briefing} />}
+              {!briefingLoading && briefingError && (
+                <div className="w-full max-w-[560px] rounded-xl border border-red-100 bg-red-50 px-5 py-4 text-sm text-red-600">
+                  <div className="flex items-center justify-between gap-4">
+                    <span>{briefingError}</span>
+                    <button
+                      type="button"
+                      onClick={retryBriefing}
+                      className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-100"
+                    >
+                      다시 시도
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className={`text-center text-sm ${surveyCompleted || meeting.surveySubmitted ? 'text-[#5F74FA]' : 'text-gray-400'}`}>
                 {surveyCompleted || meeting.surveySubmitted ? (
                   <>
