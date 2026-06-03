@@ -9,6 +9,7 @@ import Badge from '@/components/ui/Badge';
 import { useRadarData } from '@/features/leader/useRadarData';
 import { useBlockerPyramid } from '@/features/leader/useBlockerPyramid';
 import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
+import { useTalkRatioRanking } from '@/features/leader/useTalkRatioRanking';
 import { useAuthStore } from '@/stores/authStore';
 import type { CommunicationBalance } from '@/types/analysis';
 
@@ -70,7 +71,6 @@ export default function LeaderDashboard() {
   const teamId = useAuthStore((state) => state.user?.teamId);
   const {
     data: radarData,
-    comms,
     loading: radarLoading,
     error: radarError,
   } = useRadarData(teamId);
@@ -84,9 +84,14 @@ export default function LeaderDashboard() {
     loading: teamHealthLoading,
     error: teamHealthError,
   } = useTeamHealthScore(teamId);
+  const {
+    data: talkRatioRankings,
+    loading: talkRatioLoading,
+    error: talkRatioError,
+  } = useTalkRatioRanking(teamId);
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
   const radarItems = radarData ?? [];
-  const communicationItems = comms ?? [];
+  const communicationItems = talkRatioRankings ?? [];
   const blockerKeywords = blockerPyramid?.blockerKeywords ?? [];
   const actionFeedbackItems = useMemo(() => {
     return blockerPyramid?.actionPrescriptions ?? [];
@@ -233,11 +238,18 @@ export default function LeaderDashboard() {
                 1on1 소통 균형
               </p>
               <div className="flex flex-col">
-                {communicationItems.length > 0 ? (
+                {talkRatioLoading && (
+                  <p className="py-4 text-sm font-medium text-gray-400">1on1 소통 균형 데이터를 불러오는 중입니다.</p>
+                )}
+                {!talkRatioLoading && talkRatioError && (
+                  <ErrorState label="1on1 소통 균형" />
+                )}
+                {!talkRatioLoading && !talkRatioError && communicationItems.length > 0 ? (
                   communicationItems.map((item) => (
                     <CommRow key={item.memberId} item={item} />
                   ))
-                ) : (
+                ) : null}
+                {!talkRatioLoading && !talkRatioError && communicationItems.length === 0 && (
                   <p className="py-4 text-sm font-medium text-gray-400">아직 1on1 소통 균형 데이터가 없습니다.</p>
                 )}
               </div>

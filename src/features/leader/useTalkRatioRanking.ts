@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { fetchTeamQuadrant } from '@/api/teamDashboard';
-import type { RadarDataPoint } from '@/types/analysis';
-import { MOCK_RADAR } from '@/data/mockRadarData';
+import { useEffect, useState } from 'react';
+import { fetchTalkRatioRanking } from '@/api/teamDashboard';
+import { MOCK_COMMS } from '@/data/mockRadarData';
+import type { CommunicationBalance } from '@/types/analysis';
 
-export function useRadarData(teamId?: string) {
-  const [data, setData] = useState<RadarDataPoint[]>([]);
+export function useTalkRatioRanking(teamId?: string) {
+  const [data, setData] = useState<CommunicationBalance[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export function useRadarData(teamId?: string) {
     }
 
     if (import.meta.env.VITE_USE_MOCK === 'true') {
-      setData(MOCK_RADAR);
+      setData(MOCK_COMMS);
       setLoading(false);
       setError(null);
       return;
@@ -26,23 +26,23 @@ export function useRadarData(teamId?: string) {
     let ignore = false;
     const resolvedTeamId = teamId;
 
-    async function loadRadarData() {
+    async function loadTalkRatioRanking() {
       setLoading(true);
       setError(null);
       try {
-        const result = await fetchTeamQuadrant(resolvedTeamId);
+        const result = await fetchTalkRatioRanking(resolvedTeamId);
         if (!ignore) setData(result);
       } catch {
         if (!ignore) {
           setData([]);
-          setError('사분면 레이더를 불러오지 못했습니다.');
+          setError('1on1 소통 균형 데이터를 불러오지 못했습니다.');
         }
       } finally {
         if (!ignore) setLoading(false);
       }
     }
 
-    loadRadarData();
+    loadTalkRatioRanking();
 
     return () => {
       ignore = true;
