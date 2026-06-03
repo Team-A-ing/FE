@@ -10,9 +10,9 @@ import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
 import LeaderReportView from "@/components/report/LeaderReportView";
-import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
 import PreBriefingCard from "@/components/meeting/PreBriefingCard";
 import { usePreBriefing } from "@/features/meeting/usePreBriefing";
+import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
 
 type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "completed" | "error";
 
@@ -171,6 +171,8 @@ export default function MeetingDetailPage() {
     );
   }
 
+  const surveyDone = surveyCompleted || meeting.surveySubmitted === true;
+
   return (
     <PageLayout>
       <div className="flex h-full">
@@ -205,8 +207,8 @@ export default function MeetingDetailPage() {
                   </div>
                 </div>
               )}
-              <div className={`text-center text-sm ${surveyCompleted || meeting.surveySubmitted ? 'text-[#5F74FA]' : 'text-gray-400'}`}>
-                {surveyCompleted || meeting.surveySubmitted ? (
+              <div className={`text-center text-sm ${surveyDone ? 'text-[#5F74FA]' : 'text-gray-400'}`}>
+                {surveyDone ? (
                   <>
                     <p className="font-medium">멤버의 사전 서베이가 완료되었습니다.</p>
                     <p>미팅을 시작할 수 있습니다.</p>
@@ -220,15 +222,29 @@ export default function MeetingDetailPage() {
               </div>
               <button
                 onClick={() => setShowStart(true)}
-                disabled={!surveyCompleted && !meeting.surveySubmitted}
+                disabled={!surveyDone}
                 className={`px-8 py-3 rounded-full font-medium transition-all ${
-                  surveyCompleted || meeting.surveySubmitted
+                  surveyDone
                     ? 'text-white bg-[#5F74FA] hover:bg-[#4E62E6] shadow-lg shadow-[#5F74FA]/30'
                     : 'text-gray-400 bg-gray-100 cursor-not-allowed'
                 }`}
               >
                 1on1 미팅 시작하기
               </button>
+              {import.meta.env.VITE_SKIP_RECORDING === 'true' && surveyDone && (
+                <label className="mt-2 cursor-pointer px-6 py-2 rounded-full border border-dashed border-gray-400 text-sm text-gray-500 hover:border-[#5F74FA] hover:text-[#5F74FA] transition-colors">
+                  [테스트] 파일 선택해서 업로드
+                  <input
+                    type="file"
+                    accept="audio/*,.webm"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file && meetingId) performUpload(meetingId, file, 0);
+                    }}
+                  />
+                </label>
+              )}
             </div>
           )}
           {localStatus === "recording" && (
