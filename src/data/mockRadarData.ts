@@ -58,10 +58,10 @@ export const MOCK_RADAR: RadarDataPoint[] = [
 ];
 
 export const MOCK_COMMS: CommunicationBalance[] = [
-  { memberId: 'm1', name: '다은', memberRatio: 15, leaderRatio: 85, status: '위험' },
-  { memberId: 'm2', name: '재민', memberRatio: 70, leaderRatio: 30, status: '적정' },
-  { memberId: 'm3', name: '민준', memberRatio: 55, leaderRatio: 45, status: '관찰' },
-  { memberId: 'm4', name: '서연', memberRatio: 40, leaderRatio: 60, status: '관찰' },
-  { memberId: 'm5', name: '지훈', memberRatio: 50, leaderRatio: 50, status: '적정' },
-  { memberId: 'm6', name: '유진', memberRatio: 52, leaderRatio: 48, status: '적정' },
+  { memberId: 1, name: '다은', memberRatio: 15, leaderRatio: 85, status: '위험' },
+  { memberId: 2, name: '재민', memberRatio: 70, leaderRatio: 30, status: '적정' },
+  { memberId: 3, name: '민준', memberRatio: 55, leaderRatio: 45, status: '관찰' },
+  { memberId: 4, name: '서연', memberRatio: 40, leaderRatio: 60, status: '관찰' },
+  { memberId: 5, name: '지훈', memberRatio: 50, leaderRatio: 50, status: '적정' },
+  { memberId: 6, name: '유진', memberRatio: 52, leaderRatio: 48, status: '적정' },
 ];
