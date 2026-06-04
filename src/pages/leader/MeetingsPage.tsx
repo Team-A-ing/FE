@@ -41,7 +41,11 @@ export default function MeetingsPage({
   const navigate = useNavigate();
 
   const sortedMeetings = useMemo(
-    () => [...meetings].sort((a, b) => b.scheduledAt.localeCompare(a.scheduledAt)),
+    () => [...meetings].sort((a, b) => {
+      const aDate = a.scheduledAt ?? '';
+      const bDate = b.scheduledAt ?? '';
+      return bDate.localeCompare(aDate);
+    }),
     [meetings]
   );
 
