@@ -7,18 +7,15 @@ import Card from '@/components/ui/Card';
 const vdiQuestions = [
   {
     key: 'vulnerabilityLevel' as const,
-    label: 'Q1. 이번 미팅에서 어렵거나 실수한 부분을 솔직하게 말할 수 있을 것 같나요?',
-    hint: '취약성 — 심리적 안전감의 핵심 지표',
+    label: 'Q1. 실수한 부분이나 부족한 부분에 대해 말할 수 있는 상태인가요?',
   },
   {
     key: 'dissentLevel' as const,
-    label: 'Q2. 리더와 의견이 다를 때 제 생각을 말할 수 있을 것 같나요?',
-    hint: '건설적 반대 — 의사결정 품질 지표',
+    label: 'Q2. 리더와 의견이 다를 때 말할 수 있는 상태인가요?',
   },
   {
     key: 'initiativeLevel' as const,
-    label: 'Q3. 새로운 아이디어나 제안을 먼저 꺼낼 것 같나요?',
-    hint: '자발적 제안 — 참여도 지표',
+    label: 'Q3. 새로운 제안이 있다면 할 수 있는 상태인가요?',
   },
 ];
 
@@ -128,7 +125,6 @@ export default function SurveyForm({ leaderName, scheduledAt, meetingId }: Surve
           {vdiQuestions.map((q) => (
             <section key={q.key}>
               <h2 className="text-lg font-extrabold text-gray-900">{q.label}</h2>
-              <p className="mt-1 text-xs text-slate-400">{q.hint}</p>
               <div className="mt-5 grid grid-cols-5 gap-2">
                 {levelOptions.map((opt) => {
                   const isSelected = scores[q.key] === opt.value;
