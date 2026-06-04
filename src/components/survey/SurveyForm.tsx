@@ -119,7 +119,9 @@ export default function SurveyForm({ leaderName, scheduledAt, meetingId }: Surve
       <h1 className="mt-5 text-center text-2xl font-bold leading-snug text-gray-900">
         사전 설문 조사를 진행해 주세요
       </h1>
-      <p className="mt-4 text-center text-base tracking-wide text-slate-400">{scheduledDate}요일</p>
+      {scheduledDate !== '일정 미정' && (
+        <p className="mt-4 text-center text-base tracking-wide text-slate-400">{scheduledDate}요일</p>
+      )}
 
       <Card className="mt-10 w-full rounded-[20px] border-gray-200 px-9 py-9 shadow-sm">
         <div className="space-y-10">
