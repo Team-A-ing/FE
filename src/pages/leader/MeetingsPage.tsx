@@ -28,7 +28,8 @@ const actionItems = [
   { id: "a3", title: "피드백 정리", description: "직접적인 피드백을 메모하고 공유하세요." },
 ];
 
-function formatScheduledAt(scheduledAt: string) {
+function formatScheduledAt(scheduledAt: string | null | undefined) {
+  if (!scheduledAt) return '일정 미정';
   return scheduledAt.slice(0, 16).replace("T", " ");
 }
 
@@ -53,7 +54,8 @@ export default function MeetingsPage({
   const [historyPage, setHistoryPage] = useState(1);
 
   const now = new Date();
-  const isWithinGrace = (scheduledAt: string) => {
+  const isWithinGrace = (scheduledAt: string | null | undefined) => {
+    if (!scheduledAt) return false;
     const d = new Date(scheduledAt);
     d.setMinutes(d.getMinutes() + 30);
     return d > now;
@@ -61,7 +63,7 @@ export default function MeetingsPage({
 
   const futureMeetings = sortedMeetings
     .filter((m) => isWithinGrace(m.scheduledAt) && m.status !== 'COMPLETED')
-    .sort((a, b) => a.scheduledAt.localeCompare(b.scheduledAt));
+    .sort((a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''));
   const visibleFutureMeetings = showAllFuture ? futureMeetings : futureMeetings.slice(0, 3);
   const historyMeetings = sortedMeetings.filter(
     (m) => !isWithinGrace(m.scheduledAt) || m.status === 'COMPLETED'
