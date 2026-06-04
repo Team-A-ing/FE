@@ -20,6 +20,10 @@ function StatItem({ value, label }: { value: string | number; label: string }) {
 }
 
 export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
+  const displayJobTitle = stats.jobTitle?.trim() || '팀원';
+  const displayAiSummary =
+    stats.aiSummary?.trim() || `${stats.teamName}팀의 ${displayJobTitle} 입니다.`;
+
   return (
     <Card className="rounded-lg border-gray-100 p-5 shadow-sm sm:p-6">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -48,7 +52,8 @@ export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
             type="button"
             variant="secondary"
             size="sm"
-            className="rounded-lg border border-gray-200 bg-gray-50 text-slate-700 hover:bg-gray-100"
+            onClick={() => window.print()}
+            className="rounded-lg border border-gray-200 bg-gray-50 text-slate-700 hover:bg-gray-100 print:hidden"
           >
             PDF 저장
           </Button>
@@ -56,7 +61,7 @@ export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
       </div>
 
       <div className="mt-6 border-t border-gray-100 pt-4">
-        <p className="text-sm font-medium leading-6 text-slate-500">"{stats.aiSummary}"</p>
+        <p className="text-sm font-medium leading-6 text-slate-500">"{displayAiSummary}"</p>
       </div>
     </Card>
   );

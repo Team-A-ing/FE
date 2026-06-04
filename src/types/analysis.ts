@@ -31,9 +31,9 @@ export interface RadarDataPoint {
 
 // 발화 비율 인터페이스
 export interface CommunicationBalance {
-  memberId: string;
+  memberId: number;
   name: string;
   memberRatio: number;
   leaderRatio: number;
-  status: '위험' | '적정' | '관찰';
+  status: '위험' | '관찰' | '적정';
 }

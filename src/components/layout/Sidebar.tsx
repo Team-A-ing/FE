@@ -62,7 +62,12 @@ const bottomItems = [
   { label: '설정', path: '/settings', icon: <SettingsIcon /> },
 ];
 
-export default function Sidebar() {
+interface SidebarProps {
+  isCollapsed: boolean;
+  onToggle: () => void;
+}
+
+export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
   const location = useLocation();
   const user = useMe();
@@ -100,6 +105,13 @@ export default function Sidebar() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [teamMenuOpen]);
 
+  useEffect(() => {
+    if (isCollapsed) {
+      setTeamMenuOpen(false);
+      setProfileMenuOpen(false);
+    }
+  }, [isCollapsed]);
+
   const handleSectionToggle = (section: 'members' | 'inviteCode') => {
     if (activeSection === section) {
       setActiveSection(null);
@@ -134,33 +146,85 @@ export default function Sidebar() {
 
   return (
     <aside
-      style={{ width: 'var(--sidebar-width)', background: '#F8F9FA', borderRight: '1px solid #E9ECEF' }}
-      className="fixed left-0 top-0 h-full flex flex-col bg-white border-r border-gray-100 z-20"
+      style={{
+        width: isCollapsed ? '60px' : '220px',
+        transition: 'width 200ms ease',
+        background: '#F8F9FA',
+        borderRight: '1px solid #E9ECEF',
+      }}
+      className="fixed left-0 top-0 h-full flex flex-col z-20"
     >
+      {/* Toggle Button — trapezoid tab on right edge */}
+      <button
+        onClick={onToggle}
+        aria-label={isCollapsed ? '사이드바 펼치기' : '사이드바 접기'}
+        style={{
+          position: 'absolute',
+          right: -10,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: '10px',
+          height: '40px',
+          background: '#E9ECEF',
+          border: 'none',
+          borderRadius: '0 4px 4px 0',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 30,
+          padding: 0,
+          clipPath: isCollapsed
+            ? 'polygon(0 10%, 100% 0%, 100% 100%, 0 90%)'
+            : 'polygon(0 0%, 100% 10%, 100% 90%, 0 100%)',
+          transition: 'background 150ms ease, clip-path 200ms ease',
+        }}
+        onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#CED4DA'; }}
+        onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#E9ECEF'; }}
+      >
+        <svg
+          width="6"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#6B7280"
+          strokeWidth="3"
+          style={{ flexShrink: 0 }}
+        >
+          {isCollapsed
+            ? <polyline points="9 18 15 12 9 6" />
+            : <polyline points="15 18 9 12 15 6" />
+          }
+        </svg>
+      </button>
       {/* Workspace */}
       <div className="relative px-4 pt-5 pb-3 border-b border-gray-100" ref={teamMenuRef}>
         <button
           onClick={() => setTeamMenuOpen((prev) => !prev)}
-          className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+          className={`flex items-center gap-2 w-full px-2 py-1.5 rounded-lg transition-colors ${isCollapsed ? 'justify-center' : 'hover:bg-gray-50'}`}
         >
-          <div className="w-6 h-6 rounded bg-gray-800 flex items-center justify-center">
+          <div className="w-6 h-6 rounded bg-gray-800 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs font-bold">
               {user?.teamName?.[0]?.toUpperCase() ?? 'T'}
             </span>
           </div>
-          <span className="text-sm font-semibold text-gray-800 flex-1 text-left truncate">
-            {user?.teamName ?? '...'}
-          </span>
-          <svg
-            width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" strokeWidth="2"
-            className={`flex-shrink-0 transition-transform duration-150 ${teamMenuOpen ? 'rotate-180' : ''}`}
-          >
-            <polyline points="6 9 12 15 18 9" />
-          </svg>
+          {!isCollapsed && (
+            <>
+              <span className="text-sm font-semibold text-gray-800 flex-1 text-left truncate">
+                {user?.teamName ?? '...'}
+              </span>
+              <svg
+                width="12" height="12" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" strokeWidth="2"
+                className={`flex-shrink-0 transition-transform duration-150 ${teamMenuOpen ? 'rotate-180' : ''}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </>
+          )}
         </button>
 
-        {teamMenuOpen && (
+        {!isCollapsed && teamMenuOpen && (
           <div className="absolute left-2 right-2 top-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-30 overflow-hidden">
             {/* 소속 멤버 */}
             <button
@@ -241,12 +305,16 @@ export default function Sidebar() {
       </div>
 
       {/* New 1on1 Button */}
-      <div className={user?.role === 'leader' ? 'px-4 pt-3 pb-2' : 'hidden'}>
+      <div className={user?.role === 'leader' ? (isCollapsed ? 'flex justify-center pt-3 pb-2' : 'px-4 pt-3 pb-2') : 'hidden'}>
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2"
+          className={
+            isCollapsed
+              ? 'w-8 h-8 bg-black text-white rounded-lg text-base font-medium hover:bg-gray-800 transition-colors flex items-center justify-center'
+              : 'w-full py-2.5 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-2'
+          }
         >
-          새 1on1 만들기
+          {isCollapsed ? '+' : '새 1on1 만들기'}
         </button>
       </div>
 
@@ -265,10 +333,10 @@ export default function Sidebar() {
                 isActive
                   ? 'bg-gray-200 text-gray-900 font-medium'
                   : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-              }`}
+              } ${isCollapsed ? 'justify-center' : ''}`}
             >
-              <span className="text-gray-500">{item.icon}</span>
-              {item.label}
+              <span className="text-gray-500 flex-shrink-0">{item.icon}</span>
+              {!isCollapsed && item.label}
             </NavLink>
           );
         })}
@@ -280,17 +348,17 @@ export default function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
-            className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm mb-0.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors ${isCollapsed ? 'justify-center' : ''}`}
           >
-            <span className="text-gray-500">{item.icon}</span>
-            {item.label}
+            <span className="text-gray-500 flex-shrink-0">{item.icon}</span>
+            {!isCollapsed && item.label}
           </NavLink>
         ))}
       </div>
 
       {/* User Profile */}
       <div className="relative" ref={profileRef}>
-        {profileMenuOpen && (
+        {!isCollapsed && profileMenuOpen && (
           <div className="absolute bottom-full left-4 right-4 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden z-30">
             <button
               onClick={logout}
@@ -303,7 +371,7 @@ export default function Sidebar() {
         )}
         <div className="px-4 py-3 border-t border-gray-100">
           <button
-            className="flex items-center gap-2 w-full rounded-lg hover:bg-gray-50 transition-colors px-1 py-0.5 disabled:cursor-default"
+            className={`flex items-center gap-2 w-full rounded-lg hover:bg-gray-50 transition-colors px-1 py-0.5 disabled:cursor-default ${isCollapsed ? 'justify-center' : ''}`}
             onClick={() => setProfileMenuOpen((prev) => !prev)}
             disabled={!user}
           >
@@ -312,15 +380,17 @@ export default function Sidebar() {
                 {user?.name?.[0] ?? '?'}
               </span>
             </div>
-            <div className="min-w-0 text-left">
-              <p className="text-sm font-medium text-gray-800 truncate">
-                {user?.name ?? '...'}
-              </p>
-              <p className="text-xs text-gray-400 truncate">{user?.email ?? ''}</p>
-              {user?.jobTitle && (
-                <p className="text-xs text-gray-400 truncate">{user.jobTitle}</p>
-              )}
-            </div>
+            {!isCollapsed && (
+              <div className="min-w-0 text-left">
+                <p className="text-sm font-medium text-gray-800 truncate">
+                  {user?.name ?? '...'}
+                </p>
+                <p className="text-xs text-gray-400 truncate">{user?.email ?? ''}</p>
+                {user?.jobTitle && (
+                  <p className="text-xs text-gray-400 truncate">{user.jobTitle}</p>
+                )}
+              </div>
+            )}
           </button>
         </div>
       </div>

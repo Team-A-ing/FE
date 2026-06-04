@@ -1,7 +1,7 @@
 import apiClient from './client';
 import type { ApiResponse } from './types';
 import type { BlockerPyramidData } from '@/types/blocker';
-import type { RadarDataPoint } from '@/types/analysis';
+import type { CommunicationBalance, RadarDataPoint } from '@/types/analysis';
 import type { TeamHealthScoreData } from '@/types/teamHealth';
 
 export async function fetchTeamDashboard(teamId: string): Promise<TeamHealthScoreData> {
@@ -21,6 +21,13 @@ export async function fetchBlockerPyramid(teamId: string): Promise<BlockerPyrami
 export async function fetchTeamQuadrant(teamId: string): Promise<RadarDataPoint[]> {
   const res = await apiClient.get<ApiResponse<RadarDataPoint[]>>(
     `/api/v1/teams/${teamId}/quadrant`,
+  );
+  return res.data.data;
+}
+
+export async function fetchTalkRatioRanking(teamId: string): Promise<CommunicationBalance[]> {
+  const res = await apiClient.get<ApiResponse<CommunicationBalance[]>>(
+    `/api/v1/teams/${teamId}/talk-ratio-ranking`,
   );
   return res.data.data;
 }
