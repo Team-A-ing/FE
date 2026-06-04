@@ -14,11 +14,29 @@ export const careerTypeMeta: Record<CareerEventType, CareerTypeMeta> = {
     dotClassName: 'bg-emerald-500',
     accentClassName: 'text-emerald-700',
   },
-  PROPOSAL_ADOPTED: {
-    label: '제안 채택',
+  INITIATIVE: {
+    label: '주도',
     badgeClassName: 'border-blue-200 text-blue-700',
     dotClassName: 'bg-blue-600',
     accentClassName: 'text-blue-700',
+  },
+  GROWTH: {
+    label: '성장',
+    badgeClassName: 'border-violet-200 text-violet-700',
+    dotClassName: 'bg-violet-500',
+    accentClassName: 'text-violet-700',
+  },
+  CONTRIBUTION: {
+    label: '기여',
+    badgeClassName: 'border-sky-200 text-sky-700',
+    dotClassName: 'bg-sky-500',
+    accentClassName: 'text-sky-700',
+  },
+  FEEDBACK: {
+    label: '피드백',
+    badgeClassName: 'border-amber-200 text-amber-700',
+    dotClassName: 'bg-amber-500',
+    accentClassName: 'text-amber-700',
   },
   LEARNING: {
     label: '배움',

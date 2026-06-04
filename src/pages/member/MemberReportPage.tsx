@@ -17,10 +17,25 @@ const achievementStyles: Record<MemberAchievementType, { keyword: string; card: 
     card: 'border-gray-200 bg-gray-50',
     text: 'text-emerald-700',
   },
-  PROPOSAL_ADOPTED: {
-    keyword: '기여',
+  INITIATIVE: {
+    keyword: '주도',
     card: 'border-gray-200 bg-gray-50',
     text: 'text-blue-700',
+  },
+  GROWTH: {
+    keyword: '성장',
+    card: 'border-gray-200 bg-gray-50',
+    text: 'text-violet-700',
+  },
+  CONTRIBUTION: {
+    keyword: '기여',
+    card: 'border-gray-200 bg-gray-50',
+    text: 'text-sky-700',
+  },
+  FEEDBACK: {
+    keyword: '피드백',
+    card: 'border-gray-200 bg-gray-50',
+    text: 'text-amber-700',
   },
 };
 

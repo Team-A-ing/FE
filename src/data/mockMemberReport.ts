@@ -18,7 +18,7 @@ export const MOCK_MEMBER_REPORT: MemberReportData = {
     },
     {
       careerEventId: 16,
-      type: 'PROPOSAL_ADOPTED',
+      type: 'ACHIEVEMENT',
       title: '공통 컴포넌트 라이브러리 기여',
       description: 'DatePicker 공통화로 3개 팀 총 60시간 절감.',
       impactMetric: '공수 -60h',
