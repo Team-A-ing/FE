@@ -282,11 +282,13 @@ export default function MeetingDetailPage() {
 }
 
 function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
-  const dateStr = new Date(meeting.scheduledAt).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const dateStr = meeting.scheduledAt
+    ? new Date(meeting.scheduledAt).toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : '일정 미정';
 
   return (
     <div className="px-8 pt-6 pb-4 border-b border-gray-200">
