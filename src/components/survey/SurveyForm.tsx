@@ -69,16 +69,17 @@ export default function SurveyForm({ leaderName, scheduledAt, meetingId }: Surve
     scores.dissentLevel !== null &&
     scores.initiativeLevel !== null;
 
-  const scheduledDate = useMemo(
-    () =>
-      new Date(scheduledAt).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        weekday: 'short',
-      }),
-    [scheduledAt],
-  );
+  const scheduledDate = useMemo(() => {
+    if (!scheduledAt) return '일정 미정';
+    const d = new Date(scheduledAt);
+    if (isNaN(d.getTime())) return '일정 미정';
+    return d.toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      weekday: 'short',
+    });
+  }, [scheduledAt]);
 
   const getSubmitErrorMessage = (err: unknown) => {
     if (axios.isAxiosError<ApiErrorBody>(err)) {
