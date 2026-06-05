@@ -58,6 +58,12 @@ export interface PreBriefingData {
   memberName: string;
   memberJobTitle: string;
   scheduledAt: string;
+  coachingGuide?: {
+    focusArea: string;
+    guideSummary: string;
+    evidence: string[];
+    suggestedQuestions: string[];
+  };
   survey: {
     submitted: boolean;
     energyLevel: number | null;
