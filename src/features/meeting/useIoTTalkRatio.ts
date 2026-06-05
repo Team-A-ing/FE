@@ -16,6 +16,8 @@ export function useIoTTalkRatio(meetingId: string | undefined) {
   const portRef = useRef<SerialPort | null>(null);
   const writerRef = useRef<WritableStreamDefaultWriter | null>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const leaderSecondsRef = useRef(0);
   const totalSecondsRef = useRef(0);
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
@@ -47,30 +49,36 @@ export function useIoTTalkRatio(meetingId: string | undefined) {
   // VAD 기반 발화 시간 측정 시작
   const startVAD = useCallback(async () => {
     if (!meetingId) return;
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const ctx = new AudioContext();
-    audioCtxRef.current = ctx;
-    const source = ctx.createMediaStreamSource(stream);
-    const analyser = ctx.createAnalyser();
-    analyser.fftSize = 512;
-    source.connect(analyser);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const ctx = new AudioContext();
+      audioCtxRef.current = ctx;
+      const source = ctx.createMediaStreamSource(stream);
+      const analyser = ctx.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
 
-    const buffer = new Float32Array(analyser.fftSize);
-    let lastTick = Date.now();
+      const buffer = new Float32Array(analyser.fftSize);
+      let lastTick = Date.now();
 
-    // 100ms마다 진폭 체크 → 발화 감지
-    const tick = () => {
-      if (ctx.state === 'closed') return;
-      analyser.getFloatTimeDomainData(buffer);
-      const rms = Math.sqrt(buffer.reduce((s, v) => s + v * v, 0) / buffer.length);
-      const now = Date.now();
-      const elapsed = (now - lastTick) / 1000;
-      lastTick = now;
-      totalSecondsRef.current += elapsed;
-      if (rms > VAD_THRESHOLD) leaderSecondsRef.current += elapsed;
-      setTimeout(tick, 100);
-    };
-    tick();
+      // 100ms마다 진폭 체크 → 발화 감지
+      const tick = () => {
+        if (ctx.state === 'closed') return;
+        analyser.getFloatTimeDomainData(buffer);
+        const rms = Math.sqrt(buffer.reduce((s, v) => s + v * v, 0) / buffer.length);
+        const now = Date.now();
+        const elapsed = (now - lastTick) / 1000;
+        lastTick = now;
+        totalSecondsRef.current += elapsed;
+        if (rms > VAD_THRESHOLD) leaderSecondsRef.current += elapsed;
+        timeoutRef.current = setTimeout(tick, 100);
+      };
+      tick();
+    } catch (e) {
+      console.error('마이크 접근 실패:', e);
+      return;
+    }
 
     // BE에 주기적으로 신호 전송 + LED 업데이트
     intervalRef.current = setInterval(async () => {
@@ -95,18 +103,24 @@ export function useIoTTalkRatio(meetingId: string | undefined) {
 
   const stop = useCallback(() => {
     clearInterval(intervalRef.current);
+    clearTimeout(timeoutRef.current);
     audioCtxRef.current?.close();
+    streamRef.current?.getTracks().forEach(t => t.stop());
+    streamRef.current = null;
     leaderSecondsRef.current = 0;
     totalSecondsRef.current = 0;
   }, []);
 
   const disconnectSerial = useCallback(async () => {
-    await sendSerial('G'); // 종료 시 초록으로
-    writerRef.current?.releaseLock();
-    await portRef.current?.close();
-    portRef.current = null;
-    writerRef.current = null;
-    setState(prev => ({ ...prev, connected: false }));
+    try {
+      await sendSerial('G'); // 종료 시 초록으로
+    } catch { /* 포트가 이미 닫혔을 수 있음 */ } finally {
+      writerRef.current?.releaseLock();
+      await portRef.current?.close().catch(() => {});
+      portRef.current = null;
+      writerRef.current = null;
+      setState(prev => ({ ...prev, connected: false }));
+    }
   }, []);
 
   useEffect(() => () => stop(), [stop]);
