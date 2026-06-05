@@ -3,6 +3,7 @@ import type { ApiResponse } from './types';
 import type { BlockerPyramidData } from '@/types/blocker';
 import type { CommunicationBalance, RadarDataPoint } from '@/types/analysis';
 import type { TeamHealthScoreData } from '@/types/teamHealth';
+import type { TeamCoachingData } from '@/types/coaching';
 
 export async function fetchTeamDashboard(teamId: string): Promise<TeamHealthScoreData> {
   const res = await apiClient.get<ApiResponse<TeamHealthScoreData>>(
@@ -30,4 +31,11 @@ export async function fetchTalkRatioRanking(teamId: string): Promise<Communicati
     `/api/v1/teams/${teamId}/talk-ratio-ranking`,
   );
   return res.data.data;
+}
+
+export async function fetchTeamCoaching(teamId: string): Promise<TeamCoachingData> {
+  const res = await apiClient.get<ApiResponse<{ teamCoaching: TeamCoachingData }>>(
+    `/api/v1/teams/${teamId}/coaching`,
+  );
+  return res.data.data.teamCoaching;
 }
