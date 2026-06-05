@@ -243,9 +243,6 @@ export default function MeetingsPage({
                   <h3 className="text-lg font-semibold text-gray-900">1on1 멤버</h3>
                   <p className="text-sm text-gray-500">이번 달에 만나야 할 멤버를 확인해보세요.</p>
                 </div>
-                <button className="rounded-full border border-gray-200 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50">
-                  + 추가
-                </button>
               </div>
 
               {uniqueMembers.length === 0 ? (
