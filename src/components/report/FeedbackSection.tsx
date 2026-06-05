@@ -44,8 +44,8 @@ function FeedbackItem({ item }: { item: Feedback }) {
         <div className="flex items-center gap-2 min-w-0">
           <span className="flex-shrink-0">{config.icon}</span>
           <div className="flex flex-col items-start min-w-0">
-            <span className="text-[16px] font-normal text-gray-800">{item.actionGuide}</span>
-            <span className="text-sm text-gray-400">{item.title}</span>
+            <span className="text-[16px] font-medium text-gray-800">{item.actionGuide}</span>
+            <span className="text-[12px] font-light text-gray-400">{item.title}</span>
           </div>
         </div>
         <span className="text-gray-400 text-sm flex-shrink-0 ml-2">
