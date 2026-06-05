@@ -1,31 +1,20 @@
-import Badge from '@/components/ui/Badge';
+import { useState } from 'react';
+import { feedbackCardStyles, type FeedbackCardProps } from '@/components/feedback/FeedbackCard';
 import type { PreBriefingData } from '@/types/meeting';
-import { getBlockerRankColor } from '@/utils/blockerColors';
 
 interface Props {
   data: PreBriefingData;
 }
 
-const quadrantLabels: Record<string, string> = {
-  STABLE: 'STABLE',
-  SILENT_RISK: 'SILENT RISK',
-  EXPLICIT_RISK: 'EXPLICIT RISK',
-  CONSERVATIVE: 'CONSERVATIVE',
-};
+interface CoachingGuideViewModel {
+  focusArea: string;
+  guideSummary: string;
+  evidence: string[];
+  suggestedQuestions: string[];
+}
 
-const quadrantColors: Record<string, 'red' | 'yellow' | 'orange' | 'green' | 'gray'> = {
-  STABLE: 'green',
-  SILENT_RISK: 'orange',
-  EXPLICIT_RISK: 'red',
-  CONSERVATIVE: 'yellow',
-};
-
-const riskColors: Record<string, 'red' | 'yellow' | 'orange' | 'green' | 'gray'> = {
-  DANGER: 'red',
-  WARNING: 'orange',
-  CAUTION: 'yellow',
-  SAFE: 'green',
-};
+const guideBoxClassName = 'rounded-xl border border-slate-200 px-4 py-4';
+type FeedbackTone = NonNullable<FeedbackCardProps['type']>;
 
 function formatSchedule(value: string) {
   const date = new Date(value);
@@ -40,195 +29,156 @@ function formatSchedule(value: string) {
   }).format(date);
 }
 
-function formatScore(value: number | null | undefined) {
-  return typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : '-';
-}
-
-function formatChange(value: number | null) {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return '이전 평균 없음';
-  if (value > 0) return `+${Math.round(value)} vs 이전`;
-  if (value < 0) return `${Math.round(value)} vs 이전`;
-  return '변화 없음';
-}
-
 function getInitials(name: string) {
   return name.trim().slice(-2) || '?';
 }
 
-function BlockerTagList({ items, emptyText }: { items: string[]; emptyText: string }) {
-  if (items.length === 0) {
-    return <p className="text-xs text-gray-400">{emptyText}</p>;
+function getFocusAreaClassName(focusArea: string) {
+  if (focusArea.includes('약속') || focusArea.includes('점검')) {
+    return 'border-amber-300 bg-amber-100 text-amber-800';
+  }
+  if (focusArea.includes('솔직') || focusArea.includes('유도')) {
+    return 'border-rose-300 bg-rose-100 text-rose-800';
+  }
+  if (focusArea.includes('경청') || focusArea.includes('듣기')) {
+    return 'border-blue-300 bg-blue-100 text-blue-800';
+  }
+  return 'border-slate-300 bg-slate-100 text-slate-800';
+}
+
+function getFocusAreaTone(focusArea: string): FeedbackTone | 'neutral' {
+  if (focusArea.includes('솔직') || focusArea.includes('유도')) {
+    return 'error';
+  }
+  if (focusArea.includes('약속') || focusArea.includes('점검')) {
+    return 'warning';
+  }
+  if (focusArea.includes('경청') || focusArea.includes('듣기')) {
+    return 'info';
+  }
+  return 'neutral';
+}
+
+function getFocusAreaBoxStyles(focusArea: string) {
+  const tone = getFocusAreaTone(focusArea);
+
+  if (tone === 'neutral') {
+    return {
+      card: 'border-slate-200 bg-slate-50',
+      title: 'text-slate-700',
+    };
   }
 
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.map((item, index) => {
-        const color = getBlockerRankColor(index + 1);
+  return feedbackCardStyles[tone];
+}
 
-        return (
-          <span
-            key={`${item}-${index}`}
-            className="rounded-md px-2.5 py-1 text-[11px] font-medium"
-            style={{
-              backgroundColor: color.bg,
-              border: `1px solid ${color.border}`,
-              color: color.text,
-            }}
-          >
-            {item}
-          </span>
-        );
-      })}
-    </div>
-  );
+function buildFallbackGuide(data: PreBriefingData): CoachingGuideViewModel {
+  const overdueCount = data.pendingPromises.filter((promise) => promise.overdue).length;
+  const hasPendingPromises = data.pendingPromises.length > 0;
+  const hasSpeechAlerts = (data.lastMeeting?.speechActAlerts.length ?? 0) > 0;
+
+  const focusArea = overdueCount > 0 ? '약속 점검' : hasSpeechAlerts ? '경청 강화' : '대화 준비';
+
+  const guideSummary = hasPendingPromises
+    ? `지난 미팅에서 남은 약속 ${data.pendingPromises.length}건을 먼저 확인하고, 현재 진행을 막는 지점이 있는지 차분히 들어보세요.`
+    : '멤버의 최근 업무 상황과 컨디션을 먼저 확인한 뒤, 다음 액션을 함께 정리해보세요.';
+
+  const evidence = [
+    ...data.pendingPromises.map((promise) => {
+      const dueDate = promise.dueDate ? ` · 기한 ${promise.dueDate}` : '';
+      const status = promise.overdue ? '기한 초과' : '진행 중';
+      return `${promise.content} (${status}${dueDate})`;
+    }),
+    ...(data.lastMeeting?.speechActAlerts ?? []),
+    ...(data.lastMeeting?.blockerKeywords.length
+      ? [`직전 미팅 주요 blocker: ${data.lastMeeting.blockerKeywords.join(', ')}`]
+      : []),
+  ];
+
+  const suggestedQuestions = data.recommendedTopics.length
+    ? data.recommendedTopics
+    : ['최근 업무에서 가장 신경 쓰이는 부분은 무엇인가요?', '지난 미팅 이후 제가 확인해야 할 약속이나 지원이 있었나요?'];
+
+  return {
+    focusArea,
+    guideSummary,
+    evidence,
+    suggestedQuestions,
+  };
 }
 
 export default function PreBriefingCard({ data }: Props) {
-  const lastMeeting = data.lastMeeting;
-  const overdueCount = data.pendingPromises.filter((promise) => promise.overdue).length;
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
+  const guide = data.coachingGuide ?? buildFallbackGuide(data);
+  const focusBoxStyles = getFocusAreaBoxStyles(guide.focusArea);
 
   return (
-    <section className="w-full max-w-[560px] rounded-xl border border-gray-100 bg-white px-6 py-5 shadow-sm">
-      <div className="mb-4 flex items-start justify-between gap-4">
+    <section className="w-full max-w-[600px] rounded-xl border border-gray-100 bg-white px-6 py-5 shadow-sm">
+      <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EEF2FF] text-sm font-semibold text-[#4E62E6]">
             {getInitials(data.memberName)}
           </div>
           <div className="min-w-0">
             <p className="truncate text-[15px] font-semibold text-gray-900">
-              {data.memberName}님과의 {data.round}회차 1on1
+              {data.memberName}님과 {data.round}회차 1on1
             </p>
             <p className="mt-0.5 truncate text-xs text-gray-500">
               {formatSchedule(data.scheduledAt)} · {data.memberJobTitle || '직무 정보 없음'}
             </p>
           </div>
         </div>
-        {lastMeeting?.quadrant && (
-          <Badge
-            label={quadrantLabels[lastMeeting.quadrant] ?? lastMeeting.quadrant}
-            color={quadrantColors[lastMeeting.quadrant] ?? 'gray'}
-          />
-        )}
+        <span className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${getFocusAreaClassName(guide.focusArea)}`}>
+          {guide.focusArea}
+        </span>
       </div>
 
-      {lastMeeting ? (
-        <div className="mb-4 grid grid-cols-1 gap-2.5 border-t border-gray-100 pt-3.5 sm:grid-cols-2">
-          <MetricCard
-            label="Safety score"
-            value={formatScore(lastMeeting.safetyScore)}
-            hint={formatChange(lastMeeting.safetyScoreChange)}
-            color={{ bg: '#EEF2FF', border: '#C7D2FE', text: '#5F74FA' }}
-          />
-          <MetricCard
-            label="Honesty gap"
-            value={lastMeeting.honestyGap?.direction ?? '-'}
-            hint={lastMeeting.honestyGap?.riskLevel ?? '데이터 없음'}
-            color={{ bg: '#FFF7ED', border: '#FDBA74', text: '#f97316' }}
-          />
-        </div>
-      ) : (
-        <div className="mb-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
-          첫 미팅이라 이전 미팅 데이터가 없습니다.
-        </div>
-      )}
+      <div className={`mt-5 ${guideBoxClassName} ${focusBoxStyles.card}`}>
+        <p className={`text-xs font-bold ${focusBoxStyles.title}`}>이번 미팅 포커스</p>
+        <p className="mt-2 text-sm leading-relaxed text-gray-800">{guide.guideSummary}</p>
+      </div>
 
-      {(data.pendingPromises.length > 0 || (lastMeeting?.speechActAlerts.length ?? 0) > 0) && (
-        <Section title="주의 포인트">
-          <div className="flex flex-col gap-2">
-            {data.pendingPromises.length > 0 && (
-              <div
-                className={`rounded-lg px-3 py-2 ${
-                  overdueCount > 0 ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'
-                }`}
-              >
-                <p className="text-xs font-semibold">
-                  미이행 약속 {data.pendingPromises.length}건
-                  {overdueCount > 0 ? ` · 지연 ${overdueCount}건` : ''}
-                </p>
-                <p className="mt-1 text-[11px] text-gray-600">
-                  {data.pendingPromises.map((promise) => promise.content).join(' · ')}
-                </p>
-              </div>
+      <div className={`mt-4 bg-white ${guideBoxClassName}`}>
+        <p className="text-xs font-semibold text-gray-500">오늘 물어볼 질문</p>
+        <div className="mt-2.5 flex flex-col gap-2">
+          {guide.suggestedQuestions.map((question, index) => (
+            <p key={`${question}-${index}`} className="text-sm leading-relaxed text-gray-900">
+              {question}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 border-t border-gray-100 pt-3">
+        <button
+          type="button"
+          onClick={() => setEvidenceOpen((open) => !open)}
+          className="flex w-full items-center justify-between rounded-lg px-1 py-1.5 text-left text-xs font-semibold text-gray-500 hover:text-gray-800"
+        >
+          <span>{evidenceOpen ? '근거 접기' : '근거 보기'}</span>
+          <span
+            className="text-gray-400 transition-transform"
+            style={{ transform: evidenceOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+          >
+            ˅
+          </span>
+        </button>
+
+        {evidenceOpen && (
+          <div className="mt-2 flex flex-col gap-2 rounded-lg bg-gray-50 px-3 py-3">
+            {guide.evidence.length > 0 ? (
+              guide.evidence.map((item, index) => (
+                <div key={`${item}-${index}`} className="flex items-start gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+                  <p className="text-xs leading-relaxed text-gray-600">{item}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-gray-400">표시할 근거가 아직 없습니다.</p>
             )}
-            {lastMeeting?.speechActAlerts.map((alert) => (
-              <div key={alert} className="rounded-lg bg-gray-50 px-3 py-2">
-                <p className="text-xs font-medium text-gray-800">{alert}</p>
-              </div>
-            ))}
           </div>
-        </Section>
-      )}
-
-      <Section title="지난 미팅 블로커">
-        {lastMeeting ? (
-          <BlockerTagList items={lastMeeting.blockerKeywords} emptyText="지난 미팅 블로커가 없습니다." />
-        ) : (
-          <p className="text-xs text-gray-400">이전 미팅 데이터가 없습니다.</p>
         )}
-      </Section>
-
-      <Section title="이번 미팅에서 다뤄볼 주제" isLast>
-        {data.recommendedTopics.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {data.recommendedTopics.map((topic, index) => (
-              <div key={`${topic}-${index}`} className="flex items-start gap-2">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#5F74FA]" />
-                <p className="text-xs leading-relaxed text-gray-800">{topic}</p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-gray-400">추천 주제가 아직 없습니다.</p>
-        )}
-      </Section>
+      </div>
     </section>
-  );
-}
-
-function MetricCard({
-  label,
-  value,
-  hint,
-  color,
-}: {
-  label: string;
-  value: string | number;
-  hint: string;
-  color: {
-    bg: string;
-    border: string;
-    text: string;
-  };
-}) {
-  return (
-    <div
-      className="rounded-lg border px-3 py-2.5 text-center"
-      style={{ backgroundColor: color.bg, borderColor: color.border }}
-    >
-      <p className="text-[11px] text-gray-500">{label}</p>
-      <p className="mt-1 truncate text-lg font-semibold" style={{ color: color.text }}>
-        {value}
-      </p>
-      <p className="mt-0.5 truncate text-[11px] font-medium" style={{ color: color.text }}>
-        {hint}
-      </p>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  children,
-  isLast = false,
-}: {
-  title: string;
-  children: React.ReactNode;
-  isLast?: boolean;
-}) {
-  return (
-    <div className={`${isLast ? '' : 'mb-4'} border-t border-gray-100 pt-3.5`}>
-      <p className="mb-2.5 text-xs font-semibold text-gray-500">{title}</p>
-      {children}
-    </div>
   );
 }
