@@ -1,16 +1,13 @@
 import { useEffect } from 'react';
-import { useTalkRatioStream } from '@/features/meeting/useTalkRatioStream';
 import { useArduinoSerial } from '@/features/meeting/useArduinoSerial';
 
 interface Props {
-  meetingId: string | undefined;
+  ratio: { leaderRatio: number; memberRatio: number } | null;
   isRecording?: boolean;
 }
 
-export default function IotPanel({ meetingId, isRecording }: Props) {
-  const meetingIdNum = meetingId ? Number(meetingId) : null;
-  const ratio = useTalkRatioStream(isRecording ? meetingIdNum : null);
-  const { connected, connect, send } = useArduinoSerial();
+export default function IotPanel({ ratio, isRecording }: Props) {
+  const { connected, connect, send, disconnect } = useArduinoSerial();
 
   const leaderRatio = ratio?.leaderRatio ?? 0;
 
@@ -52,10 +49,10 @@ export default function IotPanel({ meetingId, isRecording }: Props) {
       )}
 
       <button
-        onClick={connected ? undefined : connect}
+        onClick={connected ? disconnect : connect}
         className="text-xs text-gray-400 hover:text-gray-600 underline"
       >
-        {connected ? 'LED 연결됨' : 'LED 연결'}
+        {connected ? 'LED 연결 해제' : 'LED 연결'}
       </button>
     </div>
   );

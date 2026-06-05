@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useChunkedRecorder } from "@/features/meeting/useChunkedRecorder";
+import { useTalkRatioStream } from "@/features/meeting/useTalkRatioStream";
 import TalkRatioBadge from "@/components/meeting/TalkRatioBadge";
 import { useUploadRecording } from "@/features/meeting/useUploadRecording";
 import { useMeetingDetail } from "@/features/meeting/useMeetingDetail";
@@ -28,6 +29,7 @@ export default function MeetingDetailPage() {
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
   const [localStatus, setLocalStatus] = useState<LocalStatus>("pending");
+  const ratio = useTalkRatioStream(localStatus === "recording" ? (meetingId ? Number(meetingId) : null) : null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const pendingUploadRef = useRef<{ blob: Blob; durationSec: number } | null>(null);
   const { completed: surveyCompleted } = useSurveyCompletion(
@@ -250,7 +252,7 @@ export default function MeetingDetailPage() {
           )}
           {localStatus === "recording" && (
             <div className="border-t border-gray-200 px-8 py-6 flex flex-col items-center gap-3">
-              <TalkRatioBadge leaderRatio={null} calibrationState={recorder.calibrationState} />
+              <TalkRatioBadge leaderRatio={ratio?.leaderRatio ?? null} calibrationState={recorder.calibrationState} />
               <span className="text-sm font-medium text-[#5F74FA]">🎙 녹음 중입니다</span>
               <span className="text-xs text-gray-400">아래 플로팅 바에서 미팅을 종료할 수 있습니다.</span>
             </div>
@@ -265,7 +267,7 @@ export default function MeetingDetailPage() {
               placeholder="나만 볼 수 있는 메모입니다."
             />
           </div>
-          <IotPanel meetingId={meetingId} isRecording={localStatus === 'recording'} />
+          <IotPanel ratio={ratio} isRecording={localStatus === 'recording'} />
         </div>
 
         <StartMeetingModal isOpen={showStart} onClose={() => setShowStart(false)} onStart={handleStartRecording} />
