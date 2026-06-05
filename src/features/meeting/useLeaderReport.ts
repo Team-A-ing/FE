@@ -29,6 +29,7 @@ const MOCK_LEADER_REPORT: LeaderReport = {
     },
   },
   safetyScore: 31,
+  flightRiskLabel: '이탈 위험 높음',
   speechActs: {
     vulnerability: {
       count: 1,

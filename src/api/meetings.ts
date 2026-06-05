@@ -12,9 +12,9 @@ import type { LeaderReport } from '@/types/report';
 export interface SubmitSurveyPayload {
   meetingId: number;
   scores: {
-    issues: string[];
-    energyLevel: number;
-    desiredRoles: string[];
+    vulnerabilityLevel: number;
+    dissentLevel: number;
+    initiativeLevel: number;
   };
 }
 

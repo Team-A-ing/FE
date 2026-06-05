@@ -1,8 +1,4 @@
-export type MemberAchievementType =
-  | 'ACHIEVEMENT'
-  | 'PROPOSAL_ADOPTED'
-  | 'GROWTH'
-  | 'CONTRIBUTION';
+export type MemberAchievementType = 'ACHIEVEMENT' | 'INITIATIVE' | 'GROWTH' | 'CONTRIBUTION' | 'FEEDBACK';
 export type MemberPromiseCategory = 'RESOURCE' | 'TEAM_BUILDING' | 'RECOGNITION' | 'PROCESS';
 export type MemberPromiseStatus = 'PENDING' | 'DONE';
 

@@ -1,4 +1,4 @@
-export type CareerEventType = 'ACHIEVEMENT' | 'LEARNING' | 'BLOCKER' | 'PROPOSAL_ADOPTED';
+export type CareerEventType = 'ACHIEVEMENT' | 'LEARNING' | 'BLOCKER' | 'INITIATIVE' | 'GROWTH' | 'CONTRIBUTION' | 'FEEDBACK';
 
 export interface CareerStats {
   memberId: number;
