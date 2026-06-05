@@ -83,7 +83,7 @@ export default function FeedbackSection({ items }: Props) {
   return (
     <div>
       <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-        AI 피드백
+        맞춤 피드백
       </h3>
       <div className="flex flex-col gap-2">
         {sorted.map((item) => (
