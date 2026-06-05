@@ -26,7 +26,7 @@ export const MOCK_CAREER_SHOWCASE: CareerEvent[] = [
   },
   {
     careerEventId: 14,
-    type: 'PROPOSAL_ADOPTED',
+    type: 'ACHIEVEMENT',
     title: '공통 DatePicker 컴포넌트 제안 -> 팀 도입',
     description: '3개 팀이 중복 개발 중인 DatePicker를 공통화하여 약 60시간을 절감했습니다.',
     impactMetric: '공수 -60h',
