@@ -22,6 +22,16 @@ const achievementStyles: Record<MemberAchievementType, { keyword: string; card: 
     card: 'border-gray-200 bg-gray-50',
     text: 'text-blue-700',
   },
+  GROWTH: {
+    keyword: '성장',
+    card: 'border-gray-200 bg-gray-50',
+    text: 'text-violet-700',
+  },
+  CONTRIBUTION: {
+    keyword: '공헌',
+    card: 'border-gray-200 bg-gray-50',
+    text: 'text-amber-700',
+  },
 };
 
 const categoryTextStyles: Record<MemberPromiseCategory, string> = {
