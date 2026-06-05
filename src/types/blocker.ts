@@ -2,7 +2,7 @@ export interface BlockerPyramidItem {
   keyword: string;
   count: number;
   mentionedBy: number;
-  mentionedMembers?: string[];
+  memberNames?: string[];
 }
 
 export interface BlockerActionPrescription {

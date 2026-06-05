@@ -152,11 +152,11 @@ export default function BlockerPyramid({
           <p className="font-semibold text-gray-900">{tooltip.item.keyword}</p>
           <p className="mt-1 text-gray-500">언급 횟수: {tooltip.item.count}</p>
           <p className="text-gray-500">언급 인원 수: {tooltip.item.mentionedBy}</p>
-          {tooltip.item.mentionedMembers && tooltip.item.mentionedMembers.length > 0 && (
+          {tooltip.item.memberNames && tooltip.item.memberNames.length > 0 && (
             <div className="mt-2 max-w-[220px]">
               <p className="mb-1 font-medium text-gray-700">언급 팀원</p>
               <div className="flex flex-wrap gap-1">
-                {tooltip.item.mentionedMembers.map((member) => (
+                {tooltip.item.memberNames.map((member) => (
                   <span key={member} className="rounded-full bg-gray-50 px-2 py-0.5 text-gray-500">
                     {member}
                   </span>
