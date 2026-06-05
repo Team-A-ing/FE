@@ -2,9 +2,9 @@ import { useState } from 'react';
 import type { SpeechActs, SpeechActItem } from '@/types/report';
 
 const ACT_LABELS: Record<keyof SpeechActs, string> = {
-  vulnerability: '취약성 표현 (Vulnerability)',
-  constructiveDissent: '건설적 반론 (Constructive Dissent)',
-  initiative: '주도성 (Initiative)',
+  vulnerability: '솔직한 표현 (Vulnerability)',
+  constructiveDissent: '건설적 의견 (Constructive Dissent)',
+  initiative: '자발적 제안 (Initiative)',
 };
 
 function ChangeRateBadge({ rate }: { rate: number }) {
