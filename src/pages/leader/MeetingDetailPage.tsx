@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
-import { useRecorder } from "@/features/meeting/useRecorder";
+import { useChunkedRecorder } from "@/features/meeting/useChunkedRecorder";
+import TalkRatioBadge from "@/components/meeting/TalkRatioBadge";
 import { useUploadRecording } from "@/features/meeting/useUploadRecording";
 import { useMeetingDetail } from "@/features/meeting/useMeetingDetail";
 import StartMeetingModal from "@/components/ui/StartMeetingModal";
@@ -22,7 +23,7 @@ export default function MeetingDetailPage() {
   const navigate = useNavigate();
   const { meeting, loading, error } = useMeetingDetail(meetingId);
   const { data: briefing, loading: briefingLoading, error: briefingError, retry: retryBriefing } = usePreBriefing(meetingId);
-  const recorder = useRecorder();
+  const recorder = useChunkedRecorder(meetingId ? Number(meetingId) : 0);
   const { upload } = useUploadRecording();
   const [showStart, setShowStart] = useState(false);
   const [showEnd, setShowEnd] = useState(false);
@@ -248,7 +249,8 @@ export default function MeetingDetailPage() {
             </div>
           )}
           {localStatus === "recording" && (
-            <div className="border-t border-gray-200 px-8 py-6 flex flex-col items-center gap-2">
+            <div className="border-t border-gray-200 px-8 py-6 flex flex-col items-center gap-3">
+              <TalkRatioBadge leaderRatio={null} calibrationState={recorder.calibrationState} />
               <span className="text-sm font-medium text-[#5F74FA]">🎙 녹음 중입니다</span>
               <span className="text-xs text-gray-400">아래 플로팅 바에서 미팅을 종료할 수 있습니다.</span>
             </div>
@@ -271,7 +273,7 @@ export default function MeetingDetailPage() {
         <RecordingFloatingBar
           isRecording={recorder.isRecording}
           elapsed={recorder.elapsed}
-          audioLevel={recorder.audioLevel}
+          audioLevel={0}
           isLeader={true}
           onEndClick={() => setShowEnd(true)}
         />
