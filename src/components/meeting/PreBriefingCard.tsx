@@ -55,25 +55,6 @@ function getInitials(name: string) {
   return name.trim().slice(-2) || '?';
 }
 
-function TagList({ items, emptyText }: { items: string[]; emptyText: string }) {
-  if (items.length === 0) {
-    return <p className="text-xs text-gray-400">{emptyText}</p>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {items.map((item) => (
-        <span
-          key={item}
-          className="rounded-md bg-gray-100 px-2.5 py-1 text-[11px] font-medium text-gray-600"
-        >
-          {item}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 function BlockerTagList({ items, emptyText }: { items: string[]; emptyText: string }) {
   if (items.length === 0) {
     return <p className="text-xs text-gray-400">{emptyText}</p>;
@@ -131,7 +112,7 @@ export default function PreBriefingCard({ data }: Props) {
       </div>
 
       {lastMeeting ? (
-        <div className="mb-4 grid grid-cols-1 gap-2.5 border-t border-gray-100 pt-3.5 sm:grid-cols-3">
+        <div className="mb-4 grid grid-cols-1 gap-2.5 border-t border-gray-100 pt-3.5 sm:grid-cols-2">
           <MetricCard
             label="Safety score"
             value={formatScore(lastMeeting.safetyScore)}
@@ -144,39 +125,12 @@ export default function PreBriefingCard({ data }: Props) {
             hint={lastMeeting.honestyGap?.riskLevel ?? '데이터 없음'}
             color={{ bg: '#FFF7ED', border: '#FDBA74', text: '#f97316' }}
           />
-          <MetricCard
-            label="Survey score"
-            value={formatScore(data.survey.surveyScore)}
-            hint={data.survey.submitted ? '사전 서베이 제출' : '서베이 미제출'}
-            color={{ bg: '#F0FDF4', border: '#BBF7D0', text: '#22c55e' }}
-          />
         </div>
       ) : (
         <div className="mb-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-500">
           첫 미팅이라 이전 미팅 데이터가 없습니다.
         </div>
       )}
-
-      <Section title="사전 서베이">
-        {data.survey.submitted ? (
-          <div className="grid gap-3 sm:grid-cols-[96px_1fr]">
-            <div className="rounded-lg bg-gray-50 px-3 py-2 text-center">
-              <p className="text-[11px] text-gray-500">Energy</p>
-              <p className="mt-1 text-xl font-semibold text-gray-900">
-                {data.survey.energyLevel ?? '-'}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2">
-              <TagList items={data.survey.issues} emptyText="선택한 이슈가 없습니다." />
-              <TagList items={data.survey.desiredRoles} emptyText="기대 역할이 없습니다." />
-            </div>
-          </div>
-        ) : (
-          <p className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500">
-            멤버가 아직 서베이를 제출하지 않았습니다.
-          </p>
-        )}
-      </Section>
 
       {(data.pendingPromises.length > 0 || (lastMeeting?.speechActAlerts.length ?? 0) > 0) && (
         <Section title="주의 포인트">

@@ -185,8 +185,7 @@ export default function MeetingDetailPage() {
               {briefingLoading && (
                 <div className="w-full max-w-[560px] rounded-xl border border-gray-100 bg-white px-6 py-5 shadow-sm">
                   <div className="h-5 w-40 rounded bg-gray-100" />
-                  <div className="mt-4 grid grid-cols-3 gap-2.5">
-                    <div className="h-20 rounded-lg bg-gray-100" />
+                  <div className="mt-4 grid grid-cols-2 gap-2.5">
                     <div className="h-20 rounded-lg bg-gray-100" />
                     <div className="h-20 rounded-lg bg-gray-100" />
                   </div>
