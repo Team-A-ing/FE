@@ -10,6 +10,7 @@ import RecordingFloatingBar from "@/components/ui/RecordingFloatingBar";
 import AnalysisLoading from "@/components/loading/AnalysisLoading";
 import type { MeetingDetail } from "@/types/meeting";
 import LeaderReportView from "@/components/report/LeaderReportView";
+import IotPanel from "@/components/iot/IotPanel";
 import PreBriefingCard from "@/components/meeting/PreBriefingCard";
 import { usePreBriefing } from "@/features/meeting/usePreBriefing";
 import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
@@ -263,6 +264,7 @@ export default function MeetingDetailPage() {
               placeholder="나만 볼 수 있는 메모입니다."
             />
           </div>
+          <IotPanel meetingId={meetingId} isRecording={localStatus === 'recording'} />
         </div>
 
         <StartMeetingModal isOpen={showStart} onClose={() => setShowStart(false)} onStart={handleStartRecording} />
@@ -280,11 +282,13 @@ export default function MeetingDetailPage() {
 }
 
 function MeetingHeader({ meeting }: { meeting: MeetingDetail }) {
-  const dateStr = new Date(meeting.scheduledAt).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+  const dateStr = meeting.scheduledAt
+    ? new Date(meeting.scheduledAt).toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : '일정 미정';
 
   return (
     <div className="px-8 pt-6 pb-4 border-b border-gray-200">

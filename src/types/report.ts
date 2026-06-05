@@ -7,6 +7,7 @@ export interface LeaderReport {
   durationSec: number;
   gaps: Gaps;
   safetyScore: number;
+  flightRiskLabel: string | null;
   speechActs: SpeechActs;
   talkRatio: TalkRatio;
   feedbacks: Feedback[];
