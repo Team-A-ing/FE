@@ -25,6 +25,24 @@ export const MOCK_MEMBER_REPORT: MemberReportData = {
       leaderQuote: '혼자 해결하지 않고 팀 전체를 끌어올리는 기여였습니다.',
       leaderName: '이준혁 팀장',
     },
+    {
+      careerEventId: 17,
+      type: 'GROWTH',
+      title: '장애 대응 역량 성장',
+      description: '로그 추적과 재현 시나리오 정리를 주도하며 운영 이슈 대응 속도를 높였습니다.',
+      impactMetric: '평균 대응 시간 -35%',
+      leaderQuote: '문제를 끝까지 파고드는 방식이 한 단계 더 탄탄해졌습니다.',
+      leaderName: '이준혁 팀장',
+    },
+    {
+      careerEventId: 18,
+      type: 'CONTRIBUTION',
+      title: '온보딩 문서 개선 기여',
+      description: '신규 입사자가 첫 배포까지 따라갈 수 있는 체크리스트와 예제를 보강했습니다.',
+      impactMetric: '온보딩 기간 -2일',
+      leaderQuote: '개인의 성과를 팀의 자산으로 바꾸는 좋은 기여였습니다.',
+      leaderName: '이준혁 팀장',
+    },
   ],
   leaderPromises: [
     {
