@@ -41,9 +41,12 @@ function FeedbackItem({ item }: { item: Feedback }) {
         className={`w-full flex items-center justify-between px-4 py-3 text-left ${config.bg} hover:brightness-95 transition-all`}
         onClick={() => setExpanded((v) => !v)}
       >
-        <div className="flex items-center gap-2">
-          <span>{config.icon}</span>
-          <span className="text-sm font-medium text-gray-800">{item.title}</span>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex-shrink-0">{config.icon}</span>
+          <div className="flex flex-col items-start min-w-0">
+            <span className="text-[16px] font-normal text-gray-800">{item.actionGuide}</span>
+            <span className="text-sm text-gray-400">{item.title}</span>
+          </div>
         </div>
         <span className="text-gray-400 text-sm flex-shrink-0 ml-2">
           {expanded ? '▲' : '▼'}
@@ -52,18 +55,14 @@ function FeedbackItem({ item }: { item: Feedback }) {
       {expanded && (
         <div className="px-4 py-3 flex flex-col gap-3 border-t border-gray-100 bg-white">
           <div>
-            <p className="text-xs font-semibold text-gray-400 mb-1">근거 발화</p>
-            <p className="text-xs text-gray-600 italic bg-gray-50 rounded px-3 py-2 leading-relaxed">
+            <p className="text-sm font-semibold text-gray-400 mb-1">근거 발화</p>
+            <p className="text-sm text-gray-600 italic bg-gray-50 rounded px-3 py-2 leading-relaxed">
               {item.evidenceQuote}
             </p>
           </div>
           <div>
-            <p className="text-xs font-semibold text-gray-400 mb-1">데이터 요약</p>
-            <p className="text-xs text-gray-600 leading-relaxed">{item.dataSummary}</p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-[#5F74FA] mb-1">액션 가이드</p>
-            <p className="text-xs text-gray-700 leading-relaxed">{item.actionGuide}</p>
+            <p className="text-sm font-semibold text-gray-400 mb-1">데이터 요약</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{item.dataSummary}</p>
           </div>
         </div>
       )}
