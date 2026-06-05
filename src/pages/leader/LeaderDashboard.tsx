@@ -12,6 +12,8 @@ import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
 import { useTalkRatioRanking } from '@/features/leader/useTalkRatioRanking';
 import { usePromises } from '@/features/leader/usePromises';
 import { useAuthStore } from '@/stores/authStore';
+import TeamCoachingCard from '@/components/feedback/TeamCoachingCard';
+import { useTeamCoaching } from '@/features/leader/useTeamCoaching';
 import type { CommunicationBalance } from '@/types/analysis';
 import type { OverduePromise } from '@/types/promise';
 
@@ -118,6 +120,11 @@ export default function LeaderDashboard() {
     loading: promisesLoading,
     error: promisesError,
   } = usePromises(teamId);
+  const {
+    data: coachingData,
+    loading: coachingLoading,
+    error: coachingError,
+  } = useTeamCoaching(teamId);
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
   const radarItems = radarData ?? [];
   const communicationItems = talkRatioRankings ?? [];
@@ -146,6 +153,23 @@ export default function LeaderDashboard() {
         {!teamHealthLoading && !teamHealthError && !teamHealthScore && (
           <Card className="mb-5 p-5">
             <p className="text-sm font-medium text-gray-400">아직 Team Health Score를 계산할 데이터가 없습니다.</p>
+          </Card>
+        )}
+
+        {coachingLoading && (
+          <Card className="mb-5 p-5">
+            <p className="text-sm font-medium text-gray-500">팀 코칭 데이터를 불러오는 중입니다.</p>
+          </Card>
+        )}
+        {!coachingLoading && coachingError && (
+          <Card className="mb-5 p-5">
+            <ErrorState label="팀 코칭" />
+          </Card>
+        )}
+        {!coachingLoading && coachingData && <TeamCoachingCard data={coachingData} />}
+        {!coachingLoading && !coachingError && !coachingData && (
+          <Card className="mb-5 p-5">
+            <p className="text-sm font-medium text-gray-400">아직 팀 코칭 데이터가 없습니다.</p>
           </Card>
         )}
 
