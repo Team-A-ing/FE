@@ -14,9 +14,17 @@ export function useActionPlan(items: ActionPlan[]) {
   }, [items]);
 
   const toggle = async (planId: number, currentlyDone: boolean) => {
-    if (currentlyDone) return;
-    setCompleted((prev) => new Set([...prev, planId]));
     setErrorId(null);
+    if (currentlyDone) {
+      setCompleted((prev) => {
+        const next = new Set(prev);
+        next.delete(planId);
+        return next;
+      });
+      // TODO: await uncompleteActionPlan(planId) — BE 엔드포인트 추가 후 연결
+      return;
+    }
+    setCompleted((prev) => new Set([...prev, planId]));
     if (!isMock) {
       try {
         await completeActionPlan(planId);

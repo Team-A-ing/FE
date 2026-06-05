@@ -21,13 +21,16 @@ export default function PromisesSection({ data }: Props) {
         {data.previous.length > 0 && (
           <div className="rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-              <p className="text-xs font-semibold text-gray-500">이전 약속</p>
+              <p className="text-sm font-semibold text-gray-500">이전 약속</p>
             </div>
             {data.previous.map((p, idx) => (
               <div key={p.promiseId}>
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span className="text-base flex-shrink-0">
-                    {p.status === 'DONE' ? '✅' : '❌'}
+                    {p.status === 'DONE'
+                      ? <span className="text-green-500 font-bold">✓</span>
+                      : <span className="text-red-400 font-bold">✕</span>
+                    }
                   </span>
                   <span
                     className={`text-sm flex-1 ${
@@ -58,7 +61,7 @@ export default function PromisesSection({ data }: Props) {
         {data.new.length > 0 && (
           <div className="rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-4 py-2 bg-gray-50 border-b border-gray-200">
-              <p className="text-xs font-semibold text-gray-500">새 약속</p>
+              <p className="text-sm font-semibold text-gray-500">새 약속</p>
             </div>
             {data.new.map((p, idx) => (
               <div key={p.promiseId}>

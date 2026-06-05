@@ -19,7 +19,7 @@ interface Props {
 
 export default function LeaderReportView({ meetingId }: Props) {
   const { report, loading, error, retry } = useLeaderReport(meetingId);
-  const [activeTab, setActiveTab] = useState<ReportTab>('analysis');
+  const [activeTab, setActiveTab] = useState<ReportTab>('feedback');
   const actionPlan = useActionPlan(report?.nextActionPlans ?? EMPTY_ACTION_PLANS);
 
   if (loading) {
@@ -49,7 +49,7 @@ export default function LeaderReportView({ meetingId }: Props) {
     <div className="flex flex-col flex-1 min-h-0">
       {/* Tab bar */}
       <div className="flex border-b border-gray-200 px-8">
-        {(['analysis', 'feedback'] as ReportTab[]).map((tab) => {
+        {(['feedback', 'analysis'] as ReportTab[]).map((tab) => {
           const label = tab === 'analysis' ? '미팅 분석' : '리더 맞춤 피드백';
           return (
             <button
