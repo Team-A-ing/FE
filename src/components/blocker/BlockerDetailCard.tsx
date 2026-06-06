@@ -21,11 +21,11 @@ export default function BlockerDetailCard({ item }: BlockerDetailCardProps) {
         </div>
       </div>
 
-      {item.mentionedMembers && item.mentionedMembers.length > 0 && (
+      {item.memberNames && item.memberNames.length > 0 && (
         <div className="mt-3">
           <p className="mb-1.5 text-xs font-medium text-gray-500">언급 팀원</p>
           <div className="flex flex-wrap gap-1.5">
-            {item.mentionedMembers.map((member) => (
+            {item.memberNames.map((member) => (
               <span key={member} className="rounded-full bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
                 {member}
               </span>

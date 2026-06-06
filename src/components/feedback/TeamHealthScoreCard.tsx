@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import type React from 'react';
 import Card from '@/components/ui/Card';
 import type { TeamHealthScoreData, TeamHealthTrend } from '@/types/teamHealth';
 
 export interface TeamHealthScoreCardProps {
   data: TeamHealthScoreData;
+  coachingSlot?: React.ReactNode;
 }
 
 const trendMessageStyles: Record<TeamHealthTrend, string> = {
@@ -20,7 +22,7 @@ const trendLabels: Record<TeamHealthTrend, string> = {
 
 const TEAM_HEALTH_BAR_COLOR = '#2dd4bf';
 
-export default function TeamHealthScoreCard({ data }: TeamHealthScoreCardProps) {
+export default function TeamHealthScoreCard({ data, coachingSlot }: TeamHealthScoreCardProps) {
   const [alertsOpen, setAlertsOpen] = useState(false);
   const score = Math.round(data.teamHealthScore);
   const alerts = data.alerts ?? [];
@@ -28,7 +30,7 @@ export default function TeamHealthScoreCard({ data }: TeamHealthScoreCardProps) 
 
   return (
     <Card className="mb-5 p-5">
-      <div className="grid gap-5">
+      <div className="flex flex-col gap-5">
         <div className="min-w-0">
           <p className="text-base font-semibold text-gray-700">Team Health Score</p>
           <div className="mt-3 flex items-end gap-2">
@@ -47,9 +49,15 @@ export default function TeamHealthScoreCard({ data }: TeamHealthScoreCardProps) 
             />
           </div>
           <p className={`mt-3 text-sm font-semibold ${trendMessageStyles[data.trend]}`}>
-            현재 추세는 {trendLabels[data.trend]} 상태입니다. 
+            현재 추세는 {trendLabels[data.trend]} 상태입니다.
           </p>
         </div>
+
+        {coachingSlot && (
+          <div className="border-t border-gray-100 pt-4">
+            {coachingSlot}
+          </div>
+        )}
 
         <div className="border-t border-gray-100 pt-4">
           <button

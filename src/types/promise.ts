@@ -21,3 +21,26 @@ export interface OverduePromise {
   fromMeetingRound: number
   memberName: string
 }
+
+export type SummaryPromiseStatus = 'PENDING' | 'OVERDUE'
+
+export interface PromiseSummaryItem {
+  promiseId: string
+  content: string
+  context: string
+  status: SummaryPromiseStatus
+  createdAt: string
+  meetingTitle: string
+}
+
+export interface MemberPromiseSummary {
+  memberId: string
+  memberName: string
+  promises: PromiseSummaryItem[]
+  stats: {
+    total: number
+    completed: number
+    pending: number
+    overdue: number
+  }
+}
