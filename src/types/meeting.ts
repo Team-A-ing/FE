@@ -52,6 +52,13 @@ export interface MeetingListItem {
 
 export type MeetingQuadrant = 'STABLE' | 'SILENT_RISK' | 'EXPLICIT_RISK' | 'CONSERVATIVE';
 
+export interface PendingPromise {
+  promiseId: number;
+  content: string;
+  dueDate: string | null;
+  overdue: boolean;
+}
+
 export interface PreBriefingData {
   meetingId: number;
   round: number;
@@ -82,11 +89,6 @@ export interface PreBriefingData {
     speechActAlerts: string[];
     blockerKeywords: string[];
   } | null;
-  pendingPromises: {
-    promiseId: number;
-    content: string;
-    dueDate: string | null;
-    overdue: boolean;
-  }[];
+  pendingPromises: PendingPromise[];
   recommendedTopics: string[];
 }
