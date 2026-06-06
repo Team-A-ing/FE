@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { completeActionPlan } from '@/api/actionPlans';
+import { completeActionPlan, uncompleteActionPlan } from '@/api/actionPlans';
 import type { ActionPlan } from '@/types/report';
 
 export function useActionPlan(items: ActionPlan[]) {
@@ -21,7 +21,14 @@ export function useActionPlan(items: ActionPlan[]) {
         next.delete(planId);
         return next;
       });
-      // TODO: await uncompleteActionPlan(planId) — BE 엔드포인트 추가 후 연결
+      if (!isMock) {
+        try {
+          await uncompleteActionPlan(planId);
+        } catch {
+          setCompleted((prev) => new Set([...prev, planId]));
+          setErrorId(planId);
+        }
+      }
       return;
     }
     setCompleted((prev) => new Set([...prev, planId]));

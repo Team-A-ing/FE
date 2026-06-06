@@ -7,15 +7,15 @@ import Card from '@/components/ui/Card';
 const vdiQuestions = [
   {
     key: 'vulnerabilityLevel' as const,
-    label: 'Q1. 오늘 미팅에서 어려운 점이나 고민을 편하게 꺼낼 수 있으신가요?',
+    label: 'Q1. 나는 이번 미팅에서 어려움/실수를 솔직히 말할 수 있을 것 같다',
   },
   {
     key: 'dissentLevel' as const,
-    label: 'Q2. 다르게 생각하는 부분이 있다면 자유롭게 말씀드릴 수 있으신가요?',
+    label: 'Q2. 나는 리더 의견에 동의하지 않으면 말할 수 있다',
   },
   {
     key: 'initiativeLevel' as const,
-    label: 'Q3. 개선하고 싶거나 시도해보고 싶은 아이디어가 있다면 먼저 꺼낼 수 있으신가요?',
+    label: 'Q3. 나는 이번 미팅에서 먼저 의견을 제안할 것이다',
   },
 ];
 
