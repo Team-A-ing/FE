@@ -10,12 +10,12 @@ import { useRadarData } from '@/features/leader/useRadarData';
 import { useBlockerPyramid } from '@/features/leader/useBlockerPyramid';
 import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
 import { useTalkRatioRanking } from '@/features/leader/useTalkRatioRanking';
-import { usePromises } from '@/features/leader/usePromises';
+import PromiseSummaryCard from '@/components/report/PromiseSummaryCard';
+import { usePromiseSummary } from '@/features/leader/usePromiseSummary';
 import { useAuthStore } from '@/stores/authStore';
 import TeamCoachingCard from '@/components/feedback/TeamCoachingCard';
 import { useTeamCoaching } from '@/features/leader/useTeamCoaching';
 import type { CommunicationBalance } from '@/types/analysis';
-import type { OverduePromise } from '@/types/promise';
 
 // ── Talk Ratio Bar ─────────────────────────────────────────────────────────────
 
@@ -69,28 +69,6 @@ function ErrorState({ label }: { label: string }) {
   );
 }
 
-function formatDueDate(date: string) {
-  const parsed = new Date(date);
-  if (Number.isNaN(parsed.getTime())) return date;
-
-  return parsed.toLocaleDateString('ko-KR', {
-    month: 'long',
-    day: 'numeric',
-  });
-}
-
-function PromiseRow({ promise }: { promise: OverduePromise }) {
-  return (
-    <div className="border-t border-gray-100 py-3 first:border-t-0 first:pt-0 last:pb-0">
-      <p className="text-sm text-gray-950">
-        <span>{promise.memberName}</span>님과의 약속
-      </p>
-      <p className="mt-1 text-sm font-bold leading-5 text-gray-950">{promise.content}</p>
-      <p className="mt-1 text-xs font-medium text-gray-400">마감일 {formatDueDate(promise.dueDate)}</p>
-    </div>
-  );
-}
-
 type ChartTab = 'radar' | 'blocker';
 
 export default function LeaderDashboard() {
@@ -116,10 +94,11 @@ export default function LeaderDashboard() {
     error: talkRatioError,
   } = useTalkRatioRanking(teamId);
   const {
-    promises,
+    data: promiseSummary,
     loading: promisesLoading,
     error: promisesError,
-  } = usePromises(teamId);
+    complete: completePromise,
+  } = usePromiseSummary(teamId);
   const {
     data: coachingData,
     loading: coachingLoading,
@@ -282,7 +261,7 @@ export default function LeaderDashboard() {
           </div>
 
           {/* Right: Communication Balance */}
-          <div className="w-[260px] flex-shrink-0 flex flex-col gap-4">
+          <div className="w-[360px] flex-shrink-0 flex flex-col gap-4">
             {/* Communication Balance */}
             <Card className="p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
@@ -310,22 +289,12 @@ export default function LeaderDashboard() {
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                 미이행 약속
               </p>
-              <div className="flex flex-col">
-                {promisesLoading && (
-                  <p className="py-4 text-sm font-medium text-gray-400">미이행 약속을 불러오는 중입니다.</p>
-                )}
-                {!promisesLoading && promisesError && (
-                  <p className="text-sm font-medium text-gray-400">{promisesError}</p>
-                )}
-                {!promisesLoading && !promisesError && promises.length > 0 && (
-                  promises.map((promise) => (
-                    <PromiseRow key={promise.promiseId} promise={promise} />
-                  ))
-                )}
-                {!promisesLoading && !promisesError && promises.length === 0 && (
-                  <p className="py-4 text-sm font-medium text-gray-400">아직 미이행 약속이 없습니다.</p>
-                )}
-              </div>
+              <PromiseSummaryCard
+                data={promiseSummary}
+                onComplete={completePromise}
+                loading={promisesLoading}
+                error={promisesError}
+              />
             </Card>
           </div>
         </div>
