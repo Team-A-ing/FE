@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { feedbackCardStyles, type FeedbackCardProps } from '@/components/feedback/FeedbackCard';
-import type { PreBriefingData } from '@/types/meeting';
+import type { PendingPromise, PreBriefingData } from '@/types/meeting';
 
 interface Props {
   data: PreBriefingData;
@@ -26,6 +26,18 @@ function formatSchedule(value: string) {
     weekday: 'short',
     hour: '2-digit',
     minute: '2-digit',
+  }).format(date);
+}
+
+function formatDueDate(value: string | null) {
+  if (!value) return '기한 미정';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return `기한 ${value}`;
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    month: 'long',
+    day: 'numeric',
   }).format(date);
 }
 
@@ -80,8 +92,8 @@ function buildFallbackGuide(data: PreBriefingData): CoachingGuideViewModel {
   const focusArea = overdueCount > 0 ? '약속 점검' : hasSpeechAlerts ? '경청 강화' : '대화 준비';
 
   const guideSummary = hasPendingPromises
-    ? `지난 미팅에서 남은 약속 ${data.pendingPromises.length}건을 먼저 확인하고, 현재 진행을 막는 지점이 있는지 차분히 들어보세요.`
-    : '멤버의 최근 업무 상황과 컨디션을 먼저 확인한 뒤, 다음 액션을 함께 정리해보세요.';
+    ? `지난 미팅에서 남은 약속 ${data.pendingPromises.length}건을 먼저 확인하고, 진행을 막는 지점이 있는지 차분히 들어보세요.`
+    : '멤버의 최근 업무 상황과 컨디션을 먼저 확인하고, 다음 액션을 함께 정리해보세요.';
 
   const evidence = [
     ...data.pendingPromises.map((promise) => {
@@ -105,6 +117,57 @@ function buildFallbackGuide(data: PreBriefingData): CoachingGuideViewModel {
     evidence,
     suggestedQuestions,
   };
+}
+
+function ActionItemStatusBadge({ overdue }: { overdue: boolean }) {
+  return (
+    <span
+      className={
+        overdue
+          ? 'shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-600 ring-1 ring-red-100'
+          : 'shrink-0 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100'
+      }
+    >
+      {overdue ? '기한 초과' : '진행 중'}
+    </span>
+  );
+}
+
+function ActionItems({ items }: { items: PendingPromise[] }) {
+  return (
+    <div className={`mt-4 bg-white ${guideBoxClassName}`}>
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs font-semibold text-gray-500">액션아이템</p>
+          <p className="mt-1 text-xs font-medium text-gray-400">이번 1on1에서 확인할 미이행 약속</p>
+        </div>
+        <span className="text-xs font-semibold text-gray-400">{items.length}개</span>
+      </div>
+
+      {items.length === 0 ? (
+        <p className="mt-3 rounded-lg bg-gray-50 px-3 py-3 text-sm font-medium text-gray-400">
+          확인할 미이행 약속이 없습니다.
+        </p>
+      ) : (
+        <div className="mt-3 overflow-hidden rounded-lg border border-gray-100">
+          {items.map((item, index) => (
+            <div
+              key={item.promiseId}
+              className={`flex items-center justify-between gap-4 px-3 py-3 ${
+                index > 0 ? 'border-t border-gray-100' : ''
+              }`}
+            >
+              <div className="min-w-0">
+                <p className="text-sm font-semibold leading-5 text-gray-900">{item.content}</p>
+                <p className="mt-1 text-xs font-medium text-gray-400">{formatDueDate(item.dueDate)}</p>
+              </div>
+              <ActionItemStatusBadge overdue={item.overdue} />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function PreBriefingCard({ data }: Props) {
@@ -136,6 +199,37 @@ export default function PreBriefingCard({ data }: Props) {
       <div className={`mt-5 ${guideBoxClassName} ${focusBoxStyles.card}`}>
         <p className={`text-xs font-bold ${focusBoxStyles.title}`}>이번 미팅 포커스</p>
         <p className="mt-2 text-sm leading-relaxed text-gray-800">{guide.guideSummary}</p>
+
+        <div className="mt-3 border-t border-slate-200/80 pt-2">
+          <button
+            type="button"
+            onClick={() => setEvidenceOpen((open) => !open)}
+            className="flex w-full items-center justify-between rounded-lg py-1.5 text-left text-xs font-semibold text-gray-500 hover:text-gray-800"
+          >
+            <span>{evidenceOpen ? '근거 접기' : '근거 보기'}</span>
+            <span
+              className="text-gray-400 transition-transform"
+              style={{ transform: evidenceOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
+            >
+              ▾
+            </span>
+          </button>
+
+          {evidenceOpen && (
+            <div className="mt-2 flex flex-col gap-2 rounded-lg bg-white/70 px-3 py-3">
+              {guide.evidence.length > 0 ? (
+                guide.evidence.map((item, index) => (
+                  <div key={`${item}-${index}`} className="flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
+                    <p className="text-xs leading-relaxed text-gray-600">{item}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-gray-400">표시할 근거가 아직 없습니다.</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       <div className={`mt-4 bg-white ${guideBoxClassName}`}>
@@ -149,36 +243,7 @@ export default function PreBriefingCard({ data }: Props) {
         </div>
       </div>
 
-      <div className="mt-4 border-t border-gray-100 pt-3">
-        <button
-          type="button"
-          onClick={() => setEvidenceOpen((open) => !open)}
-          className="flex w-full items-center justify-between rounded-lg px-1 py-1.5 text-left text-xs font-semibold text-gray-500 hover:text-gray-800"
-        >
-          <span>{evidenceOpen ? '근거 접기' : '근거 보기'}</span>
-          <span
-            className="text-gray-400 transition-transform"
-            style={{ transform: evidenceOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-          >
-            ˅
-          </span>
-        </button>
-
-        {evidenceOpen && (
-          <div className="mt-2 flex flex-col gap-2 rounded-lg bg-gray-50 px-3 py-3">
-            {guide.evidence.length > 0 ? (
-              guide.evidence.map((item, index) => (
-                <div key={`${item}-${index}`} className="flex items-start gap-2">
-                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gray-400" />
-                  <p className="text-xs leading-relaxed text-gray-600">{item}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-xs text-gray-400">표시할 근거가 아직 없습니다.</p>
-            )}
-          </div>
-        )}
-      </div>
+      <ActionItems items={data.pendingPromises} />
     </section>
   );
 }
