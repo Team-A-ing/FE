@@ -1,8 +1,15 @@
+export interface RelatedMember {
+  memberId: number;
+  memberName: string;
+  mentionCount: number;
+}
+
 export interface BlockerPyramidItem {
   keyword: string;
   count: number;
   mentionedBy: number;
-  memberNames?: string[];
+  relatedMembers?: RelatedMember[];
+  actionGuide?: string;
 }
 
 export interface BlockerActionPrescription {

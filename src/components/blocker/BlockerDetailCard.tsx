@@ -21,17 +21,17 @@ export default function BlockerDetailCard({ item }: BlockerDetailCardProps) {
         </div>
       </div>
 
-      {item.memberNames && item.memberNames.length > 0 && (
-        <div className="mt-3">
-          <p className="mb-1.5 text-xs font-medium text-gray-500">언급 팀원</p>
-          <div className="flex flex-wrap gap-1.5">
-            {item.memberNames.map((member) => (
-              <span key={member} className="rounded-full bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
-                {member}
-              </span>
-            ))}
-          </div>
+      {item.relatedMembers && item.relatedMembers.length > 0 && (
+      <div className="mt-3">
+        <p className="mb-1.5 text-xs font-medium text-gray-500">언급 팀원</p>
+        <div className="flex flex-wrap gap-1.5">
+          {item.relatedMembers.map((member) => (
+            <span key={member.memberId} className="rounded-full bg-gray-50 px-2.5 py-1 text-xs text-gray-600">
+              {member.memberName}
+            </span>
+          ))}
         </div>
+      </div>
       )}
     </div>
   );
