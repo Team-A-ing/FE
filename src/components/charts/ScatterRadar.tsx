@@ -9,27 +9,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { RadarDataPoint, RadarQuadrant, RadarRiskLevel } from '@/types/analysis';
+import type { RadarDataPoint, RadarQuadrant } from '@/types/analysis';
 
 export interface ScatterRadarProps {
   data: RadarDataPoint[];
   riskThreshold?: number;
   onMemberClick?: (memberId: number) => void;
 }
-
-const RISK_STYLE: Record<RadarRiskLevel, { fill: string; stroke: string; text: string; bg: string }> = {
-  DANGER: { fill: 'rgba(255,146,138,0.60)', stroke: '#FF928A', text: '#9F1239', bg: '#FED7D7' },
-  WARNING: { fill: 'rgba(251,191,36,0.50)', stroke: '#F59E0B', text: '#92400E', bg: '#fef4e2' },
-  SAFE: { fill: 'rgba(209,250,229,0.80)', stroke: '#69d4b1', text: '#065F46', bg: '#D1FAE5' },
-  CAUTION: { fill: 'rgba(209,213,219,0.70)', stroke: '#9CA3AF', text: '#374151', bg: '#E0E7FF' },
-};
-
-const RISK_LABELS: Record<RadarRiskLevel, string> = {
-  DANGER: '위험',
-  WARNING: '주의',
-  CAUTION: '관찰',
-  SAFE: '안전',
-};
 
 const DIRECTION_LABELS: Record<RadarDataPoint['direction'], string> = {
   OVERREPORT: '표면 점수 높음',
@@ -38,9 +24,17 @@ const DIRECTION_LABELS: Record<RadarDataPoint['direction'], string> = {
 
 const QUADRANT_LABELS: Record<RadarQuadrant, string> = {
   STABLE: '안정',
-  SILENT_RISK: '조용한 위험',
+  SILENT_RISK: '숨은 위험',
   EXPLICIT_RISK: '명시적 위험',
   CONSERVATIVE: '보수적 응답',
+};
+
+// 점/배지 색은 위치 사분면(두 점수 모두 반영) 기준으로 통일 — 배경 영역과 항상 일치.
+const QUADRANT_STYLE: Record<RadarQuadrant, { fill: string; stroke: string; text: string; bg: string }> = {
+  STABLE: { fill: 'rgba(32,201,151,0.65)', stroke: '#20C997', text: '#065F46', bg: '#D1FAE5' },
+  SILENT_RISK: { fill: 'rgba(252,196,25,0.65)', stroke: '#FCC419', text: '#92400E', bg: '#FEF3C7' },
+  EXPLICIT_RISK: { fill: 'rgba(250,82,82,0.65)', stroke: '#FA5252', text: '#9F1239', bg: '#FED7D7' },
+  CONSERVATIVE: { fill: 'rgba(99,102,241,0.55)', stroke: '#6366F1', text: '#3730A3', bg: '#E0E7FF' },
 };
 
 function getQuadrant(point: RadarDataPoint): RadarQuadrant {
@@ -58,8 +52,8 @@ interface CustomTooltipProps {
 function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const point = payload[0].payload;
-  const risk = RISK_STYLE[point.riskLevel];
   const quadrant = getQuadrant(point);
+  const qStyle = QUADRANT_STYLE[quadrant];
   const barWidth = 160;
   const surveyWidth = (point.surveyScore / 100) * barWidth;
   const safetyWidth = (point.safetyScore / 100) * barWidth;
@@ -109,24 +103,20 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           <span>현재 상태</span>
           <strong style={{ color: '#111827' }}>{DIRECTION_LABELS[point.direction]}</strong>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>사분면</span>
-          <strong style={{ color: '#111827' }}>{QUADRANT_LABELS[quadrant]}</strong>
-        </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
         <span
           style={{
-            background: risk.bg,
-            color: risk.text,
+            background: qStyle.bg,
+            color: qStyle.text,
             borderRadius: 20,
             padding: '2px 10px',
             fontWeight: 600,
             fontSize: 11,
           }}
         >
-          {RISK_LABELS[point.riskLevel]}
+          {QUADRANT_LABELS[quadrant]}
         </span>
       </div>
     </div>
@@ -142,7 +132,7 @@ interface CustomDotProps {
 
 function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
   if (!payload) return null;
-  const style = RISK_STYLE[payload.riskLevel];
+  const style = QUADRANT_STYLE[getQuadrant(payload)];
 
   return (
     <g
