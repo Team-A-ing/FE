@@ -141,7 +141,7 @@ export default function MeetingsPage({
                           <h3 className="mt-2 text-xl font-semibold text-gray-900">
                             {meeting.partnerName}님과의 1on1
                           </h3>
-                          <p className="mt-3 text-sm text-gray-600">Round {meeting.round}</p>
+                          <p className="mt-3 text-sm text-gray-600">{meeting.round}회차</p>
                         </div>
                         <span className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatus(meeting.status).badge}`}>
                           {getStatus(meeting.status).label}
@@ -192,17 +192,19 @@ export default function MeetingsPage({
                         className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
                       >
                         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                          <div>
-                            <p className="text-sm text-gray-500">{meeting.partnerName}</p>
+                          <div className="flex flex-wrap items-baseline gap-2">
                             <h4 className="text-base font-semibold text-gray-900">
-                              {formatScheduledAt(meeting.scheduledAt)}
+                              {meeting.partnerName}님과의 1on1
                             </h4>
+                            <span className="text-xs text-gray-400">
+                              {formatScheduledAt(meeting.scheduledAt)}
+                            </span>
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
                             <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatus(meeting.status).badge}`}>
                               {getStatus(meeting.status).label}
                             </span>
-                            <span className="text-sm text-gray-500">Round {meeting.round}</span>
+                            <span className="text-sm text-gray-500">{meeting.round}회차</span>
                           </div>
                         </div>
                       </button>

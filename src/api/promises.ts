@@ -18,5 +18,5 @@ export async function fetchPromiseSummary(teamId: string): Promise<MemberPromise
 }
 
 export async function completePromise(promiseId: string): Promise<void> {
-  await apiClient.patch(`/api/v1/promises/${promiseId}`, { status: 'COMPLETED' });
+  await apiClient.patch(`/api/v1/promises/${promiseId}/complete`);
 }
