@@ -31,6 +31,7 @@ export interface PromiseSummaryItem {
   status: SummaryPromiseStatus
   createdAt: string
   round: number
+  isCompleted: boolean
 }
 
 export interface MemberPromiseSummary {

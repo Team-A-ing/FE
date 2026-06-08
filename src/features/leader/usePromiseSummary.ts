@@ -47,18 +47,21 @@ export function usePromiseSummary(teamId?: string) {
     };
   }, [teamId]);
 
-  // 체크박스 완료 시: 해당 약속을 목록에서 제거하고 완료 개수를 증가시킨다.
-  // 멤버 카드는 유지하여 m/n 완료 배지가 갱신되는 것을 보여준다.
-  // PATCH로 서버 상태(DONE)를 영속화하여 다음 날 대시보드에도 반영되게 한다.
+  // 체크박스 완료 시: 약속을 목록에서 제거하지 않고 체크된(isCompleted) 상태로 유지하며
+  // 완료 개수를 증가시킨다. 멤버 카드의 m/n 완료 배지도 함께 갱신된다.
+  // PATCH로 서버에 완료 시각을 영속화한다. 당일에는 체크된 채 유지되고,
+  // 다음 날 대시보드를 다시 열면 BE가 제외하여 사라진다.
   const complete = useCallback(async (promiseId: string) => {
     setData(prev =>
       prev.map(member => {
         const target = member.promises.find(p => p.promiseId === promiseId);
-        if (!target) return member;
+        if (!target || target.isCompleted) return member;
         const wasOverdue = target.status === 'OVERDUE';
         return {
           ...member,
-          promises: member.promises.filter(p => p.promiseId !== promiseId),
+          promises: member.promises.map(p =>
+            p.promiseId === promiseId ? { ...p, isCompleted: true } : p,
+          ),
           stats: {
             ...member.stats,
             completed: member.stats.completed + 1,
