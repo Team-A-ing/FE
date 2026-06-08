@@ -36,7 +36,7 @@ function PromiseItemRow({
         {promise.context && (
           <p className="mt-0.5 text-xs text-gray-400 leading-snug">{promise.context}</p>
         )}
-        <p className="mt-0.5 text-xs text-gray-400">{promise.meetingTitle}</p>
+        <p className="mt-0.5 text-xs text-gray-400">{promise.round}회차 미팅</p>
         {isOverdue && (
           <span className="mt-1 inline-block text-xs font-semibold text-red-500">기한 초과</span>
         )}
