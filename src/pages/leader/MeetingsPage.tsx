@@ -55,6 +55,14 @@ export default function MeetingsPage({
 
   const [showAllFuture, setShowAllFuture] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
+  const [expandedActionMembers, setExpandedActionMembers] = useState<Set<number>>(new Set());
+  const toggleActionMember = (memberId: number) =>
+    setExpandedActionMembers((prev) => {
+      const next = new Set(prev);
+      if (next.has(memberId)) next.delete(memberId);
+      else next.add(memberId);
+      return next;
+    });
 
   const now = new Date();
   const isWithinGrace = (scheduledAt: string | null | undefined) => {
@@ -287,22 +295,35 @@ export default function MeetingsPage({
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {actionItems.map((member) => (
-                    <div key={member.memberId} className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                      <p className="text-sm font-semibold text-gray-900">
-                        {member.memberName}
-                        <span className="ml-1 text-xs font-normal text-gray-400">{member.round}회차</span>
-                      </p>
-                      <ul className="mt-2 space-y-1.5">
-                        {member.plans.map((plan) => (
-                          <li key={plan.planId} className="flex gap-2 text-sm text-gray-600">
-                            <span className="text-gray-300">•</span>
-                            <span className="leading-snug">{replaceTermsInText(plan.content)}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                  {actionItems.map((member) => {
+                    const isOpen = expandedActionMembers.has(member.memberId);
+                    return (
+                      <div key={member.memberId} className="rounded-3xl border border-gray-200 bg-gray-50 overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => toggleActionMember(member.memberId)}
+                          className="flex w-full items-center justify-between gap-2 p-4 text-left transition hover:bg-gray-100"
+                        >
+                          <p className="text-sm font-semibold text-gray-900">
+                            {member.memberName}
+                            <span className="ml-1 text-xs font-normal text-gray-400">{member.round}회차</span>
+                            <span className="ml-2 text-xs font-normal text-gray-400">액션 {member.plans.length}개</span>
+                          </p>
+                          <span className="flex-shrink-0 text-xs text-gray-400">{isOpen ? '▲' : '▼'}</span>
+                        </button>
+                        {isOpen && (
+                          <ul className="space-y-1.5 px-4 pb-4">
+                            {member.plans.map((plan) => (
+                              <li key={plan.planId} className="flex gap-2 text-sm text-gray-600">
+                                <span className="text-gray-300">•</span>
+                                <span className="leading-snug">{replaceTermsInText(plan.content)}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>
