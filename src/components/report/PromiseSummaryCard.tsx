@@ -16,27 +16,42 @@ function PromiseItemRow({
   promise: PromiseSummaryItem;
   onComplete: (id: string) => void;
 }) {
-  const isOverdue = promise.status === 'OVERDUE';
+  const isOverdue = promise.status === 'OVERDUE' && !promise.isCompleted;
+  const isCompleted = promise.isCompleted;
 
   return (
     <div
       className={`flex gap-3 py-2.5 border-b border-gray-100 last:border-b-0 ${
-        isOverdue ? 'bg-red-50 -mx-3 px-3 rounded' : ''
+        isCompleted ? 'opacity-60' : isOverdue ? 'bg-red-50 -mx-3 px-3 rounded' : ''
       }`}
     >
       <input
         type="checkbox"
-        className="mt-0.5 flex-shrink-0 w-4 h-4 accent-teal-500 cursor-pointer"
-        onChange={() => onComplete(promise.promiseId)}
+        checked={isCompleted}
+        disabled={isCompleted}
+        className={`mt-0.5 flex-shrink-0 w-4 h-4 accent-teal-500 ${
+          isCompleted ? 'cursor-default' : 'cursor-pointer'
+        }`}
+        onChange={() => {
+          if (!isCompleted) onComplete(promise.promiseId);
+        }}
       />
       <div className="min-w-0">
-        <p className={`text-sm font-medium leading-snug ${isOverdue ? 'text-red-700' : 'text-gray-800'}`}>
+        <p
+          className={`text-sm font-medium leading-snug ${
+            isCompleted
+              ? 'text-gray-400 line-through'
+              : isOverdue
+                ? 'text-red-700'
+                : 'text-gray-800'
+          }`}
+        >
           {promise.content}
         </p>
-        {promise.context && (
+        {promise.context && !isCompleted && (
           <p className="mt-0.5 text-xs text-gray-400 leading-snug">{promise.context}</p>
         )}
-        <p className="mt-0.5 text-xs text-gray-400">{promise.meetingTitle}</p>
+        <p className="mt-0.5 text-xs text-gray-400">{promise.round}회차 미팅</p>
         {isOverdue && (
           <span className="mt-1 inline-block text-xs font-semibold text-red-500">기한 초과</span>
         )}

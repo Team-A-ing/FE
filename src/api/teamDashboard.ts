@@ -34,8 +34,8 @@ export async function fetchTalkRatioRanking(teamId: string): Promise<Communicati
 }
 
 export async function fetchTeamCoaching(teamId: string): Promise<TeamCoachingData> {
-  const res = await apiClient.get<ApiResponse<{ teamCoaching: TeamCoachingData }>>(
+  const res = await apiClient.get<ApiResponse<TeamCoachingData>>(
     `/api/v1/teams/${teamId}/coaching`,
   );
-  return res.data.data.teamCoaching;
+  return res.data.data;
 }

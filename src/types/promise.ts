@@ -30,7 +30,8 @@ export interface PromiseSummaryItem {
   context: string
   status: SummaryPromiseStatus
   createdAt: string
-  meetingTitle: string
+  round: number
+  isCompleted: boolean
 }
 
 export interface MemberPromiseSummary {
