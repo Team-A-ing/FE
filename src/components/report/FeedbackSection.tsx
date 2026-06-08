@@ -46,7 +46,7 @@ function FeedbackItem({ item }: { item: Feedback }) {
           <span className="flex-shrink-0">{config.icon}</span>
           <div className="flex flex-col items-start min-w-0">
             <span className="text-[16px] font-medium text-gray-800">{replaceTermsInText(item.actionGuide)}</span>
-            <span className="text-[12px] font-light text-gray-400">{mapFeedbackTitle(item.title)}</span>
+            <span className="text-[12px] font-light text-gray-400">{replaceTermsInText(mapFeedbackTitle(item.title))}</span>
           </div>
         </div>
         <span className="text-gray-400 text-sm flex-shrink-0 ml-2">
@@ -63,7 +63,7 @@ function FeedbackItem({ item }: { item: Feedback }) {
           </div>
           <div>
             <p className="text-sm font-semibold text-gray-400 mb-1">데이터 요약</p>
-            <p className="text-sm text-gray-600 leading-relaxed">{item.dataSummary}</p>
+            <p className="text-sm text-gray-600 leading-relaxed">{replaceTermsInText(item.dataSummary)}</p>
           </div>
         </div>
       )}

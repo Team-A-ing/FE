@@ -3,6 +3,9 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { useMeetings } from "@/features/meeting/useMeetings";
+import { useTeamActionItems } from "@/features/leader/useTeamActionItems";
+import { useAuthStore } from "@/stores/authStore";
+import { replaceTermsInText } from "@/constants/feedbackTermMap";
 import { ROUTES } from "@/constants/routes";
 
 interface MeetingsPageProps {
@@ -22,12 +25,6 @@ function getStatus(status: string) {
   return statusMap[status] ?? { label: status, badge: "bg-gray-100 text-gray-600" };
 }
 
-const actionItems = [
-  { id: "a1", title: "지난 회의 액션 리뷰", description: "지난 1on1에서 약속한 실행 항목을 확인하세요." },
-  { id: "a2", title: "이번 주 목표 설정", description: "다음 미팅까지 달성할 목표를 정리하세요." },
-  { id: "a3", title: "피드백 정리", description: "직접적인 피드백을 메모하고 공유하세요." },
-];
-
 function formatScheduledAt(scheduledAt: string | null | undefined) {
   if (!scheduledAt) return '일정 미정';
   return scheduledAt.slice(0, 16).replace("T", " ");
@@ -38,6 +35,12 @@ export default function MeetingsPage({
   getMeetingPath = ROUTES.LEADER_MEETING,
 }: MeetingsPageProps) {
   const { meetings, isLoading, error } = useMeetings();
+  const teamId = useAuthStore((s) => s.user?.teamId);
+  const {
+    data: actionItems,
+    loading: actionItemsLoading,
+    error: actionItemsError,
+  } = useTeamActionItems(teamId);
   const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
   const navigate = useNavigate();
 
@@ -265,17 +268,43 @@ export default function MeetingsPage({
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">액션 아이템</h3>
-                <p className="text-sm text-gray-500">다음에 챙겨야 할 액션을 미리 확인하세요.</p>
+                <p className="text-sm text-gray-500">멤버별로 이번 1on1에서 정한 다음 액션이에요.</p>
               </div>
 
-              <div className="space-y-3">
-                {actionItems.map((item) => (
-                  <div key={item.id} className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-sm font-semibold text-gray-900">{item.title}</p>
-                    <p className="mt-2 text-sm text-gray-500">{item.description}</p>
-                  </div>
-                ))}
-              </div>
+              {actionItemsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="rounded-3xl border border-gray-200 bg-gray-100 p-4 h-16 animate-pulse" />
+                  ))}
+                </div>
+              ) : actionItemsError ? (
+                <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-500">
+                  {actionItemsError}
+                </div>
+              ) : actionItems.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-500">
+                  아직 정해진 액션이 없습니다.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {actionItems.map((member) => (
+                    <div key={member.memberId} className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
+                      <p className="text-sm font-semibold text-gray-900">
+                        {member.memberName}
+                        <span className="ml-1 text-xs font-normal text-gray-400">{member.round}회차</span>
+                      </p>
+                      <ul className="mt-2 space-y-1.5">
+                        {member.plans.map((plan) => (
+                          <li key={plan.planId} className="flex gap-2 text-sm text-gray-600">
+                            <span className="text-gray-300">•</span>
+                            <span className="leading-snug">{replaceTermsInText(plan.content)}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           </aside>
         </div>
