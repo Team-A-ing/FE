@@ -24,23 +24,30 @@ const DIRECTION_LABELS: Record<RadarDataPoint['direction'], string> = {
 
 const QUADRANT_LABELS: Record<RadarQuadrant, string> = {
   STABLE: '안정',
-  SILENT_RISK: '숨은 위험',
-  EXPLICIT_RISK: '명시적 위험',
+  SILENT_RISK: '주의',
+  EXPLICIT_RISK: '관찰',
   CONSERVATIVE: '보수적 응답',
 };
 
 // 점/배지 색은 위치 사분면(두 점수 모두 반영) 기준으로 통일 — 배경 영역과 항상 일치.
+// 절대 위치만으로 "위험"을 단정하지 않음: 자기보고↑·발화↓(SILENT_RISK)만 주의(amber),
+// 발화 신호가 적은 좌하단은 위험이 아닌 '관찰'(회색). 실제 위험은 본인 추세 하락으로 판단.
 const QUADRANT_STYLE: Record<RadarQuadrant, { fill: string; stroke: string; text: string; bg: string }> = {
   STABLE: { fill: 'rgba(32,201,151,0.65)', stroke: '#20C997', text: '#065F46', bg: '#D1FAE5' },
-  SILENT_RISK: { fill: 'rgba(252,196,25,0.65)', stroke: '#FCC419', text: '#92400E', bg: '#FEF3C7' },
-  EXPLICIT_RISK: { fill: 'rgba(250,82,82,0.65)', stroke: '#FA5252', text: '#9F1239', bg: '#FED7D7' },
+  SILENT_RISK: { fill: 'rgba(245,158,11,0.65)', stroke: '#F59E0B', text: '#92400E', bg: '#FEF3C7' },
+  EXPLICIT_RISK: { fill: 'rgba(156,163,175,0.60)', stroke: '#9CA3AF', text: '#374151', bg: '#F3F4F6' },
   CONSERVATIVE: { fill: 'rgba(99,102,241,0.55)', stroke: '#6366F1', text: '#3730A3', bg: '#E0E7FF' },
 };
 
+// 분기점 45: safety 기준선이 40(발화 없음)이라, 발화가 조금이라도 있으면 상단으로 가도록 BE와 정렬.
+const QUADRANT_THRESHOLD = 45;
+
 function getQuadrant(point: RadarDataPoint): RadarQuadrant {
-  if (point.surveyScore >= 50 && point.safetyScore >= 50) return 'STABLE';
-  if (point.surveyScore >= 50 && point.safetyScore < 50) return 'SILENT_RISK';
-  if (point.surveyScore < 50 && point.safetyScore < 50) return 'EXPLICIT_RISK';
+  const sHigh = point.safetyScore >= QUADRANT_THRESHOLD;
+  const svHigh = point.surveyScore >= QUADRANT_THRESHOLD;
+  if (svHigh && sHigh) return 'STABLE';
+  if (svHigh && !sHigh) return 'SILENT_RISK';
+  if (!svHigh && !sHigh) return 'EXPLICIT_RISK';
   return 'CONSERVATIVE';
 }
 
@@ -156,7 +163,7 @@ function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
 
 export default function ScatterRadar({
   data,
-  riskThreshold = 0.5,
+  riskThreshold = QUADRANT_THRESHOLD / 100,
   onMemberClick,
 }: ScatterRadarProps) {
   const threshold = riskThreshold * 100;
@@ -167,9 +174,10 @@ export default function ScatterRadar({
         <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 20 }}>
           <CartesianGrid strokeDasharray="4 4" stroke="#E5E7EB" strokeOpacity={0.7} />
 
+          {/* 우상단 안정(green), 우하단 주의(amber), 좌하단 관찰(gray·위험 아님), 좌상단 보수적(indigo) */}
           <ReferenceArea x1={threshold} x2={100} y1={threshold} y2={100} fill="#20C997" fillOpacity={0.2} />
-          <ReferenceArea x1={threshold} x2={100} y1={0} y2={threshold} fill="#FCC419" fillOpacity={0.2} />
-          <ReferenceArea x1={0} x2={threshold} y1={0} y2={threshold} fill="#FA5252" fillOpacity={0.2} />
+          <ReferenceArea x1={threshold} x2={100} y1={0} y2={threshold} fill="#F59E0B" fillOpacity={0.18} />
+          <ReferenceArea x1={0} x2={threshold} y1={0} y2={threshold} fill="#9CA3AF" fillOpacity={0.16} />
           <ReferenceArea x1={0} x2={threshold} y1={threshold} y2={100} fill="#E0E7FF" fillOpacity={0.32} />
 
           <XAxis
