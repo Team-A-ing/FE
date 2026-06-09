@@ -42,9 +42,9 @@ const QUADRANT_STYLE: Record<RadarQuadrant, { fill: string; stroke: string; text
 // 분기점 45: safety 기준선이 40(발화 없음)이라, 발화가 조금이라도 있으면 상단으로 가도록 BE와 정렬.
 const QUADRANT_THRESHOLD = 45;
 
-function getQuadrant(point: RadarDataPoint): RadarQuadrant {
-  const sHigh = point.safetyScore >= QUADRANT_THRESHOLD;
-  const svHigh = point.surveyScore >= QUADRANT_THRESHOLD;
+function getQuadrant(point: RadarDataPoint, threshold: number = QUADRANT_THRESHOLD): RadarQuadrant {
+  const sHigh = point.safetyScore >= threshold;
+  const svHigh = point.surveyScore >= threshold;
   if (svHigh && sHigh) return 'STABLE';
   if (svHigh && !sHigh) return 'SILENT_RISK';
   if (!svHigh && !sHigh) return 'EXPLICIT_RISK';
@@ -54,12 +54,14 @@ function getQuadrant(point: RadarDataPoint): RadarQuadrant {
 interface CustomTooltipProps {
   active?: boolean;
   payload?: { payload: RadarDataPoint }[];
+  threshold?: number;
 }
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, threshold }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
-  const point = payload[0].payload;
-  const quadrant = getQuadrant(point);
+  const point = payload[0]?.payload;
+  if (!point) return null;
+  const quadrant = getQuadrant(point, threshold);
   const qStyle = QUADRANT_STYLE[quadrant];
   const barWidth = 160;
   const surveyWidth = (point.surveyScore / 100) * barWidth;
@@ -134,12 +136,13 @@ interface CustomDotProps {
   cx?: number;
   cy?: number;
   payload?: RadarDataPoint;
+  threshold?: number;
   onMemberClick?: (memberId: number) => void;
 }
 
-function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
+function CustomDot({ cx = 0, cy = 0, payload, threshold, onMemberClick }: CustomDotProps) {
   if (!payload) return null;
-  const style = QUADRANT_STYLE[getQuadrant(payload)];
+  const style = QUADRANT_STYLE[getQuadrant(payload, threshold)];
 
   return (
     <g
@@ -214,13 +217,14 @@ export default function ScatterRadar({
           <ReferenceLine x={threshold} stroke="#D1D5DB" strokeDasharray="4 4" strokeWidth={1} />
           <ReferenceLine y={threshold} stroke="#D1D5DB" strokeDasharray="4 4" strokeWidth={1} />
 
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip threshold={threshold} />} />
 
           <Scatter
             data={data}
             shape={(props: object) => (
               <CustomDot
                 {...(props as CustomDotProps)}
+                threshold={threshold}
                 onMemberClick={onMemberClick}
               />
             )}
