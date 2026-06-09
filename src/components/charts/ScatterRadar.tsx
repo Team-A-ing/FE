@@ -9,27 +9,13 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { RadarDataPoint, RadarQuadrant, RadarRiskLevel } from '@/types/analysis';
+import type { RadarDataPoint, RadarQuadrant } from '@/types/analysis';
 
 export interface ScatterRadarProps {
   data: RadarDataPoint[];
   riskThreshold?: number;
   onMemberClick?: (memberId: number) => void;
 }
-
-const RISK_STYLE: Record<RadarRiskLevel, { fill: string; stroke: string; text: string; bg: string }> = {
-  DANGER: { fill: 'rgba(255,146,138,0.60)', stroke: '#FF928A', text: '#9F1239', bg: '#FED7D7' },
-  WARNING: { fill: 'rgba(251,191,36,0.50)', stroke: '#F59E0B', text: '#92400E', bg: '#fef4e2' },
-  SAFE: { fill: 'rgba(209,250,229,0.80)', stroke: '#69d4b1', text: '#065F46', bg: '#D1FAE5' },
-  CAUTION: { fill: 'rgba(209,213,219,0.70)', stroke: '#9CA3AF', text: '#374151', bg: '#E0E7FF' },
-};
-
-const RISK_LABELS: Record<RadarRiskLevel, string> = {
-  DANGER: '위험',
-  WARNING: '주의',
-  CAUTION: '관찰',
-  SAFE: '안전',
-};
 
 const DIRECTION_LABELS: Record<RadarDataPoint['direction'], string> = {
   OVERREPORT: '표면 점수 높음',
@@ -38,28 +24,45 @@ const DIRECTION_LABELS: Record<RadarDataPoint['direction'], string> = {
 
 const QUADRANT_LABELS: Record<RadarQuadrant, string> = {
   STABLE: '안정',
-  SILENT_RISK: '조용한 위험',
-  EXPLICIT_RISK: '명시적 위험',
+  SILENT_RISK: '주의',
+  EXPLICIT_RISK: '위험',
   CONSERVATIVE: '보수적 응답',
 };
 
-function getQuadrant(point: RadarDataPoint): RadarQuadrant {
-  if (point.surveyScore >= 50 && point.safetyScore >= 50) return 'STABLE';
-  if (point.surveyScore >= 50 && point.safetyScore < 50) return 'SILENT_RISK';
-  if (point.surveyScore < 50 && point.safetyScore < 50) return 'EXPLICIT_RISK';
+// 점/배지 색은 위치 사분면(두 점수 모두 반영) 기준으로 통일 — 배경 영역과 항상 일치.
+// 베이스라인 40 보정으로 정상 미팅은 저점 구역에서 벗어나므로, 저점에 남는 경우만 실제 위험.
+// 좌하단(자기보고·행동 모두 낮음)=위험(red), 우하단(말은 괜찮은데 행동 낮음=숨은 갭)=주의(amber).
+const QUADRANT_STYLE: Record<RadarQuadrant, { fill: string; stroke: string; text: string; bg: string }> = {
+  STABLE: { fill: 'rgba(32,201,151,0.65)', stroke: '#20C997', text: '#065F46', bg: '#D1FAE5' },
+  SILENT_RISK: { fill: 'rgba(245,158,11,0.65)', stroke: '#F59E0B', text: '#92400E', bg: '#FEF3C7' },
+  EXPLICIT_RISK: { fill: 'rgba(250,82,82,0.65)', stroke: '#FA5252', text: '#9F1239', bg: '#FED7D7' },
+  CONSERVATIVE: { fill: 'rgba(99,102,241,0.55)', stroke: '#6366F1', text: '#3730A3', bg: '#E0E7FF' },
+};
+
+// 분기점 45: safety 기준선이 40(발화 없음)이라, 발화가 조금이라도 있으면 상단으로 가도록 BE와 정렬.
+const QUADRANT_THRESHOLD = 45;
+
+function getQuadrant(point: RadarDataPoint, threshold: number = QUADRANT_THRESHOLD): RadarQuadrant {
+  const sHigh = point.safetyScore >= threshold;
+  const svHigh = point.surveyScore >= threshold;
+  if (svHigh && sHigh) return 'STABLE';
+  if (svHigh && !sHigh) return 'SILENT_RISK';
+  if (!svHigh && !sHigh) return 'EXPLICIT_RISK';
   return 'CONSERVATIVE';
 }
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: { payload: RadarDataPoint }[];
+  threshold?: number;
 }
 
-function CustomTooltip({ active, payload }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, threshold }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
-  const point = payload[0].payload;
-  const risk = RISK_STYLE[point.riskLevel];
-  const quadrant = getQuadrant(point);
+  const point = payload[0]?.payload;
+  if (!point) return null;
+  const quadrant = getQuadrant(point, threshold);
+  const qStyle = QUADRANT_STYLE[quadrant];
   const barWidth = 160;
   const surveyWidth = (point.surveyScore / 100) * barWidth;
   const safetyWidth = (point.safetyScore / 100) * barWidth;
@@ -109,24 +112,20 @@ function CustomTooltip({ active, payload }: CustomTooltipProps) {
           <span>현재 상태</span>
           <strong style={{ color: '#111827' }}>{DIRECTION_LABELS[point.direction]}</strong>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-          <span>사분면</span>
-          <strong style={{ color: '#111827' }}>{QUADRANT_LABELS[quadrant]}</strong>
-        </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
         <span
           style={{
-            background: risk.bg,
-            color: risk.text,
+            background: qStyle.bg,
+            color: qStyle.text,
             borderRadius: 20,
             padding: '2px 10px',
             fontWeight: 600,
             fontSize: 11,
           }}
         >
-          {RISK_LABELS[point.riskLevel]}
+          {QUADRANT_LABELS[quadrant]}
         </span>
       </div>
     </div>
@@ -137,12 +136,13 @@ interface CustomDotProps {
   cx?: number;
   cy?: number;
   payload?: RadarDataPoint;
+  threshold?: number;
   onMemberClick?: (memberId: number) => void;
 }
 
-function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
+function CustomDot({ cx = 0, cy = 0, payload, threshold, onMemberClick }: CustomDotProps) {
   if (!payload) return null;
-  const style = RISK_STYLE[payload.riskLevel];
+  const style = QUADRANT_STYLE[getQuadrant(payload, threshold)];
 
   return (
     <g
@@ -166,7 +166,7 @@ function CustomDot({ cx = 0, cy = 0, payload, onMemberClick }: CustomDotProps) {
 
 export default function ScatterRadar({
   data,
-  riskThreshold = 0.5,
+  riskThreshold = QUADRANT_THRESHOLD / 100,
   onMemberClick,
 }: ScatterRadarProps) {
   const threshold = riskThreshold * 100;
@@ -177,8 +177,9 @@ export default function ScatterRadar({
         <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 20 }}>
           <CartesianGrid strokeDasharray="4 4" stroke="#E5E7EB" strokeOpacity={0.7} />
 
+          {/* 우상단 안정(green), 우하단 주의(amber), 좌하단 위험(red), 좌상단 보수적(indigo) */}
           <ReferenceArea x1={threshold} x2={100} y1={threshold} y2={100} fill="#20C997" fillOpacity={0.2} />
-          <ReferenceArea x1={threshold} x2={100} y1={0} y2={threshold} fill="#FCC419" fillOpacity={0.2} />
+          <ReferenceArea x1={threshold} x2={100} y1={0} y2={threshold} fill="#F59E0B" fillOpacity={0.18} />
           <ReferenceArea x1={0} x2={threshold} y1={0} y2={threshold} fill="#FA5252" fillOpacity={0.2} />
           <ReferenceArea x1={0} x2={threshold} y1={threshold} y2={100} fill="#E0E7FF" fillOpacity={0.32} />
 
@@ -216,13 +217,14 @@ export default function ScatterRadar({
           <ReferenceLine x={threshold} stroke="#D1D5DB" strokeDasharray="4 4" strokeWidth={1} />
           <ReferenceLine y={threshold} stroke="#D1D5DB" strokeDasharray="4 4" strokeWidth={1} />
 
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip threshold={threshold} />} />
 
           <Scatter
             data={data}
             shape={(props: object) => (
               <CustomDot
                 {...(props as CustomDotProps)}
+                threshold={threshold}
                 onMemberClick={onMemberClick}
               />
             )}
