@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import ScatterRadar from '@/components/charts/ScatterRadar';
 import BlockerPyramid from '@/components/charts/BlockerPyramid';
@@ -15,6 +16,7 @@ import { usePromiseSummary } from '@/features/leader/usePromiseSummary';
 import { useAuthStore } from '@/stores/authStore';
 import TeamCoachingCard from '@/components/feedback/TeamCoachingCard';
 import { useTeamCoaching } from '@/features/leader/useTeamCoaching';
+import { ROUTES } from '@/constants/routes';
 import type { CommunicationBalance } from '@/types/analysis';
 
 // ── Talk Ratio Bar ─────────────────────────────────────────────────────────────
@@ -72,6 +74,7 @@ function ErrorState({ label }: { label: string }) {
 type ChartTab = 'radar' | 'blocker';
 
 export default function LeaderDashboard() {
+  const navigate = useNavigate();
   const teamId = useAuthStore((state) => state.user?.teamId);
   const {
     data: radarData,
@@ -292,6 +295,7 @@ export default function LeaderDashboard() {
               <PromiseSummaryCard
                 data={promiseSummary}
                 onComplete={completePromise}
+                onViewMember={(memberId) => navigate(ROUTES.LEADER_MEMBER(memberId))}
                 loading={promisesLoading}
                 error={promisesError}
               />
