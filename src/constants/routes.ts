@@ -4,6 +4,7 @@ export const ROUTES = {
   LEADER_DASHBOARD: '/leader/dashboard',
   LEADER_MEETINGS: '/leader/meetings',
   LEADER_MEETING: (id: string) => `/leader/meeting/${id}`,
+  LEADER_MEMBER: (memberId: string) => `/leader/member/${memberId}`,
   LEADER_PROMISES: '/leader/promises',
   MEMBER_DASHBOARD: '/member/dashboard',
   MEMBER_MEETINGS: '/member/meetings',

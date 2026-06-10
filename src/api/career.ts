@@ -1,6 +1,14 @@
 import apiClient from './client';
 import type { ApiResponse } from './types';
 import type { CareerEvent, CareerEventType, CareerStats } from '@/types/career';
+import type { MemberInsight } from '@/types/memberInsight';
+
+export async function fetchMemberInsight(memberId: string): Promise<MemberInsight> {
+  const res = await apiClient.get<ApiResponse<MemberInsight>>(
+    `/api/v1/members/${memberId}/insight`,
+  );
+  return res.data.data;
+}
 
 export async function fetchCareerStats(memberId: string): Promise<CareerStats> {
   const res = await apiClient.get<ApiResponse<CareerStats>>(`/api/v1/members/${memberId}/career-stats`);
