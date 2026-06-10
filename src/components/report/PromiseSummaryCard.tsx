@@ -5,6 +5,7 @@ import type { MemberPromiseSummary, PromiseSummaryItem } from '@/types/promise';
 export interface PromiseSummaryCardProps {
   data: MemberPromiseSummary[];
   onComplete: (promiseId: string) => void;
+  onViewMember?: (memberId: string) => void;
   loading?: boolean;
   error?: string | null;
 }
@@ -63,6 +64,7 @@ function PromiseItemRow({
 export default function PromiseSummaryCard({
   data,
   onComplete,
+  onViewMember,
   loading,
   error,
 }: PromiseSummaryCardProps) {
@@ -91,6 +93,17 @@ export default function PromiseSummaryCard({
             }
             defaultOpen
           >
+            {onViewMember && (
+              <div className="flex justify-end pb-1">
+                <button
+                  type="button"
+                  onClick={() => onViewMember(member.memberId)}
+                  className="text-xs font-medium text-teal-600 hover:text-teal-700"
+                >
+                  자세히 보기 ›
+                </button>
+              </div>
+            )}
             {member.promises.map(promise => (
               <PromiseItemRow key={promise.promiseId} promise={promise} onComplete={onComplete} />
             ))}

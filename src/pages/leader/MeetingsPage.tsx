@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { useMeetings } from "@/features/meeting/useMeetings";
 import { useTeamActionItems } from "@/features/leader/useTeamActionItems";
+import { useTeamMembers } from "@/features/team/useTeamMembers";
 import { useAuthStore } from "@/stores/authStore";
 import { replaceTermsInText } from "@/constants/feedbackTermMap";
 import { ROUTES } from "@/constants/routes";
@@ -87,9 +88,13 @@ export default function MeetingsPage({
     historyPage * HISTORY_PAGE_SIZE
   );
 
-  const uniqueMembers = useMemo(
-    () => Array.from(new Set(meetings.map((m) => m.partnerName))),
-    [meetings]
+  const { members: teamMembers, fetch: fetchTeamMembers } = useTeamMembers(teamId ?? '');
+  useEffect(() => {
+    if (teamId) fetchTeamMembers();
+  }, [teamId, fetchTeamMembers]);
+  const memberList = useMemo(
+    () => teamMembers.filter((m) => m.role === 'member'),
+    [teamMembers]
   );
 
   return (
@@ -258,16 +263,27 @@ export default function MeetingsPage({
                 </div>
               </div>
 
-              {uniqueMembers.length === 0 ? (
+              {memberList.length === 0 ? (
                 <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-6 text-center text-sm text-gray-500">
                   아직 추가된 멤버가 없습니다.
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {uniqueMembers.map((name) => (
-                    <div key={name} className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                      <p className="text-sm font-semibold text-gray-900">{name}</p>
-                    </div>
+                  {memberList.map((member) => (
+                    <button
+                      key={member.id}
+                      type="button"
+                      onClick={() => navigate(ROUTES.LEADER_MEMBER(member.id))}
+                      className="flex w-full items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{member.name}</p>
+                        {member.jobTitle && (
+                          <p className="mt-0.5 text-xs text-gray-400">{member.jobTitle}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400">자세히 보기 ›</span>
+                    </button>
                   ))}
                 </div>
               )}
