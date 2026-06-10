@@ -5,4 +5,6 @@ export interface TeamHealthScoreData {
   teamHealthScore: number;
   trend: TeamHealthTrend;
   alerts: string[];
+  trendDelta?: number | null;
+  statusNote?: string | null;
 }
