@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
 import Card from '@/components/ui/Card';
@@ -26,15 +26,39 @@ const LEVEL_CLS: Record<string, string> = {
   낮음: 'bg-red-50 text-red-500',
 };
 
-function groupByDate<T extends { date: string | null }>(items: T[]): [string, T[]][] {
-  const map = new Map<string, T[]>();
+interface GroupEntry<T> {
+  date: string;
+  meetingTitle: string;
+  items: T[];
+}
+
+function groupByMeeting<T extends { date: string | null; meetingTitle: string }>(items: T[]): GroupEntry<T>[] {
+  const map = new Map<string, GroupEntry<T>>();
   for (const it of items) {
-    const key = it.date ?? '날짜 미상';
-    const arr = map.get(key) ?? [];
-    if (!map.has(key)) map.set(key, arr);
-    arr.push(it);
+    const date = it.date ?? '날짜 미상';
+    const key = `${date}__${it.meetingTitle}`;
+    if (!map.has(key)) map.set(key, { date, meetingTitle: it.meetingTitle, items: [] });
+    map.get(key)!.items.push(it);
   }
-  return [...map.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+  return [...map.values()].sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function AccordionGroup({ date, meetingTitle, children }: { date: string; meetingTitle: string; children: React.ReactNode }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center gap-2 py-1 text-left"
+      >
+        <span className="text-xs font-semibold text-gray-500">{date}</span>
+        <span className="text-xs text-gray-400">{meetingTitle}</span>
+        <span className="ml-auto text-xs text-gray-400">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && <div className="mt-1.5">{children}</div>}
+    </div>
+  );
 }
 
 function SectionCard({ title, desc, children }: { title: string; desc?: string; children: React.ReactNode }) {
@@ -47,53 +71,73 @@ function SectionCard({ title, desc, children }: { title: string; desc?: string; 
   );
 }
 
+const LEVEL_NOTE: Record<string, string> = {
+  좋음: '고민·의견·제안을 자유롭게 꺼냄',
+  보통: '기본적인 소통이 이뤄짐',
+  낮음: '속내를 꺼내기 어려워한 신호',
+};
+
 function TrendSection({ points }: { points: MemberInsightTrendPoint[] }) {
   if (points.length === 0) {
     return <p className="text-sm text-gray-400">아직 분석된 미팅이 없습니다.</p>;
   }
   return (
-    <ul className="flex flex-col gap-2">
-      {points.map((p, i) => {
-        const prev = i > 0 ? points[i - 1].healthScore : null;
-        const diff = prev === null ? null : Math.round((p.healthScore - prev) * 10) / 10;
-        const arrow = diff === null ? '' : diff >= 3 ? '↑ 좋아짐' : diff <= -3 ? '↓ 낮아짐' : '≈ 비슷';
-        const arrowCls = diff === null ? 'text-gray-300'
-          : diff >= 3 ? 'text-emerald-600' : diff <= -3 ? 'text-red-500' : 'text-gray-400';
-        return (
-          <li key={p.round} className="flex items-center justify-between gap-3 rounded-lg bg-gray-50 px-3 py-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span className="font-medium text-gray-800">{p.round}회차</span>
-              <span className="text-xs text-gray-400">{p.date ?? ''}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LEVEL_CLS[p.level] ?? 'bg-gray-100 text-gray-600'}`}>
-                {p.level}
-              </span>
-              <span className={`text-xs font-medium ${arrowCls}`}>{arrow}</span>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap gap-2 text-xs text-gray-400">
+        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-600">좋음 — 적극적 소통</span>
+        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">보통 — 기본 소통</span>
+        <span className="rounded-full bg-red-50 px-2 py-0.5 text-red-500">낮음 — 소통 제한적</span>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {points.map((p, i) => {
+          const prev = i > 0 ? points[i - 1].healthScore : null;
+          const diff = prev === null ? null : Math.round((p.healthScore - prev) * 10) / 10;
+          const arrow = diff === null ? '' : diff >= 3 ? '↑ 이전보다 좋아짐' : diff <= -3 ? '↓ 이전보다 낮아짐' : '≈ 이전과 비슷';
+          const arrowCls = diff === null ? 'text-gray-300'
+            : diff >= 3 ? 'text-emerald-600' : diff <= -3 ? 'text-red-500' : 'text-gray-400';
+          return (
+            <li key={p.round} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-800">{p.round}회차</span>
+                  <span className="text-xs text-gray-400">{p.date ?? ''}</span>
+                  {p.meetingTitle && <span className="text-xs text-gray-400">· {p.meetingTitle}</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LEVEL_CLS[p.level] ?? 'bg-gray-100 text-gray-600'}`}>
+                    {p.level}
+                  </span>
+                  {arrow && <span className={`text-xs font-medium ${arrowCls}`}>{arrow}</span>}
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-400">{LEVEL_NOTE[p.level]}</p>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 }
 
 function PromisesSection({ promises }: { promises: MemberInsightPromise[] }) {
-  const grouped = useMemo(() => groupByDate(promises), [promises]);
+  const grouped = useMemo(() => groupByMeeting(promises), [promises]);
   if (promises.length === 0) {
     return <p className="text-sm text-gray-400">아직 약속이 없습니다.</p>;
   }
   return (
-    <div className="flex flex-col gap-4">
-      {grouped.map(([date, items]) => (
-        <div key={date}>
-          <p className="mb-1.5 text-xs font-semibold text-gray-400">{date}</p>
+    <div className="flex flex-col gap-3">
+      {grouped.map((g) => (
+        <AccordionGroup key={`${g.date}__${g.meetingTitle}`} date={g.date} meetingTitle={g.meetingTitle}>
           <ul className="flex flex-col gap-1.5">
-            {items.map((p) => (
+            {g.items.map((p) => (
               <li key={p.promiseId} className="flex items-start justify-between gap-3 rounded-lg border border-gray-100 px-3 py-2">
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className={`text-xs font-medium ${p.ownerType === 'LEADER' ? 'text-violet-500' : 'text-teal-500'}`}>
+                      {p.ownerType === 'LEADER' ? '리더' : '멤버'}
+                    </span>
+                  </div>
                   <p className="text-sm text-gray-800">{p.content}</p>
-                  {p.round > 0 && <p className="mt-0.5 text-xs text-gray-400">{p.round}회차</p>}
                 </div>
                 <span className={`flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${PROMISE_STATUS[p.status].cls}`}>
                   {PROMISE_STATUS[p.status].label}
@@ -101,24 +145,23 @@ function PromisesSection({ promises }: { promises: MemberInsightPromise[] }) {
               </li>
             ))}
           </ul>
-        </div>
+        </AccordionGroup>
       ))}
     </div>
   );
 }
 
 function ActionPlansSection({ plans }: { plans: MemberInsightActionPlan[] }) {
-  const grouped = useMemo(() => groupByDate(plans), [plans]);
+  const grouped = useMemo(() => groupByMeeting(plans), [plans]);
   if (plans.length === 0) {
     return <p className="text-sm text-gray-400">아직 액션 플랜이 없습니다.</p>;
   }
   return (
-    <div className="flex flex-col gap-4">
-      {grouped.map(([date, items]) => (
-        <div key={date}>
-          <p className="mb-1.5 text-xs font-semibold text-gray-400">{date}</p>
+    <div className="flex flex-col gap-3">
+      {grouped.map((g) => (
+        <AccordionGroup key={`${g.date}__${g.meetingTitle}`} date={g.date} meetingTitle={g.meetingTitle}>
           <ul className="flex flex-col gap-1.5">
-            {items.map((a) => (
+            {g.items.map((a) => (
               <li key={a.planId} className="flex items-start gap-2 rounded-lg border border-gray-100 px-3 py-2">
                 <span className={`mt-0.5 flex-shrink-0 text-sm ${a.isCompleted ? 'text-emerald-500' : 'text-gray-300'}`}>
                   {a.isCompleted ? '✓' : '○'}
@@ -129,7 +172,7 @@ function ActionPlansSection({ plans }: { plans: MemberInsightActionPlan[] }) {
               </li>
             ))}
           </ul>
-        </div>
+        </AccordionGroup>
       ))}
     </div>
   );
@@ -180,7 +223,7 @@ export default function LeaderMemberDetailPage() {
           </Card>
         ) : insight ? (
           <>
-            <SectionCard title="상태 추세" desc="미팅 회차별 소통 상태 변화입니다.">
+            <SectionCard title="회차별 소통 참여도" desc="멤버가 미팅에서 고민·의견·제안을 얼마나 자유롭게 꺼냈는지를 회차별로 보여줍니다.">
               <TrendSection points={insight.statusTrend} />
             </SectionCard>
             <SectionCard title="약속" desc="날짜별 약속과 이행 상태입니다.">
