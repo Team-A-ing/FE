@@ -75,7 +75,7 @@ export default function CreateMeetingModal({ isOpen, onClose, onCreated }: Props
   }, [isOpen, user?.teamId]);
 
   const filtered = members.filter(
-    (m) => String(m.id) !== user?.id && (m.name.includes(search) || m.jobTitle.includes(search))
+    (m) => String(m.id) !== user?.id && (m.name?.includes(search) || m.jobTitle?.includes(search))
   );
 
   const calDays = useMemo(() => {
