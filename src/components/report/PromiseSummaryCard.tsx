@@ -1,13 +1,23 @@
 import Accordion from '@/components/ui/Accordion';
 import Badge from '@/components/ui/Badge';
-import type { MemberPromiseSummary, PromiseSummaryItem } from '@/types/promise';
+import type { PromiseSummaryItem, TeamPromiseSummaryData } from '@/types/promise';
 
 export interface PromiseSummaryCardProps {
-  data: MemberPromiseSummary[];
+  data: TeamPromiseSummaryData;
   onComplete: (promiseId: string) => void;
   onViewMember?: (memberId: string) => void;
   loading?: boolean;
   error?: string | null;
+}
+
+function RoleTag({ role }: { role: 'leader' | 'member' }) {
+  return (
+    <span
+      className={`text-xs font-medium ${role === 'leader' ? 'text-violet-500' : 'text-teal-500'}`}
+    >
+      {role === 'leader' ? '리더' : '멤버'}
+    </span>
+  );
 }
 
 function PromiseItemRow({
@@ -52,7 +62,10 @@ function PromiseItemRow({
         {promise.context && !isCompleted && (
           <p className="mt-0.5 text-xs text-gray-400 leading-snug">{promise.context}</p>
         )}
-        <p className="mt-0.5 text-xs text-gray-400">{promise.round}회차 미팅</p>
+        <p className="mt-0.5 text-xs text-gray-400">
+          {promise.round}회차 미팅
+          {promise.partnerName && ` · ${promise.partnerName}님과의 약속`}
+        </p>
         {isOverdue && (
           <span className="mt-1 inline-block text-xs font-semibold text-red-500">기한 초과</span>
         )}
@@ -74,20 +87,55 @@ export default function PromiseSummaryCard({
   if (error) {
     return <p className="text-sm font-medium text-gray-400">{error}</p>;
   }
-  if (data.length === 0) {
+
+  const { leaderPromises, memberPromises } = data;
+
+  if (!leaderPromises && memberPromises.length === 0) {
     return <p className="py-4 text-sm font-medium text-gray-400">미이행 약속이 없습니다.</p>;
   }
 
   return (
     <div className="flex flex-col gap-2">
-      {data.map(member => {
+      {/* 리더가 멤버들에게 한 약속 종합 — 항상 최상단 */}
+      {leaderPromises && (
+        <Accordion
+          title={
+            <span className="flex items-center gap-1.5">
+              {leaderPromises.memberName}
+              <RoleTag role="leader" />
+            </span>
+          }
+          rightElement={
+            <Badge
+              label={`${leaderPromises.stats.completed}/${leaderPromises.stats.total} 완료`}
+              color={
+                leaderPromises.stats.overdue > 0 ? 'red'
+                  : leaderPromises.stats.pending > 0 ? 'yellow' : 'green'
+              }
+            />
+          }
+          defaultOpen
+        >
+          {leaderPromises.promises.map(promise => (
+            <PromiseItemRow key={promise.promiseId} promise={promise} onComplete={onComplete} />
+          ))}
+        </Accordion>
+      )}
+
+      {/* 멤버가 한 약속 — 멤버별 */}
+      {memberPromises.map(member => {
         const { stats } = member;
         const badgeColor = stats.overdue > 0 ? 'red' : stats.pending > 0 ? 'yellow' : 'green';
 
         return (
           <Accordion
             key={member.memberId}
-            title={member.memberName}
+            title={
+              <span className="flex items-center gap-1.5">
+                {member.memberName}
+                <RoleTag role="member" />
+              </span>
+            }
             rightElement={
               <Badge label={`${stats.completed}/${stats.total} 완료`} color={badgeColor} />
             }
