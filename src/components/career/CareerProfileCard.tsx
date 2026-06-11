@@ -4,6 +4,7 @@ import type { CareerStats } from '@/types/career';
 
 interface CareerProfileCardProps {
   stats: CareerStats;
+  onEdit?: () => void;
 }
 
 function getInitial(name: string) {
@@ -19,7 +20,7 @@ function StatItem({ value, label }: { value: string | number; label: string }) {
   );
 }
 
-export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
+export default function CareerProfileCard({ stats, onEdit }: CareerProfileCardProps) {
   const displayJobTitle = stats.jobTitle?.trim() || '팀원';
   const displayAiSummary =
     stats.aiSummary?.trim() || `${stats.teamName}팀의 ${displayJobTitle} 입니다.`;
@@ -41,13 +42,24 @@ export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
             <div className="mt-4 flex flex-wrap gap-x-7 gap-y-4">
               <StatItem value={`${stats.totalMeetings}회`} label="총 1on1" />
               <StatItem value={`${stats.achievementCount}건`} label="성취" />
-              <StatItem value={`${stats.leaderEndorsementCount}회`} label="리더 공인" />
-              <StatItem value={`상위 ${stats.contributionPercentile}%`} label="기여도" />
+              <StatItem value={`${stats.promiseFulfillmentRate}%`} label="약속 이행률" />
+              <StatItem value={`${stats.completedActionCount}개`} label="완료된 액션" />
             </div>
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-wrap">
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {onEdit && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={onEdit}
+              className="rounded-lg border border-gray-200 bg-gray-50 text-slate-700 hover:bg-gray-100"
+            >
+              프로필 수정
+            </Button>
+          )}
           <Button
             type="button"
             variant="secondary"

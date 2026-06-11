@@ -1,11 +1,15 @@
 export type MemberInsightPromiseStatus = 'DONE' | 'PENDING' | 'OVERDUE';
 
+export type MemberInsightPromiseOwner = 'MEMBER' | 'LEADER';
+
 export interface MemberInsightPromise {
   promiseId: number;
   content: string;
   status: MemberInsightPromiseStatus;
   date: string | null;
   round: number;
+  meetingTitle: string;
+  ownerType: MemberInsightPromiseOwner;
 }
 
 export interface MemberInsightTrendPoint {
@@ -13,6 +17,7 @@ export interface MemberInsightTrendPoint {
   date: string | null;
   healthScore: number;
   level: string; // 좋음 / 보통 / 낮음
+  meetingTitle: string;
 }
 
 export interface MemberInsightActionPlan {
@@ -21,6 +26,7 @@ export interface MemberInsightActionPlan {
   isCompleted: boolean;
   date: string | null;
   round: number;
+  meetingTitle: string;
 }
 
 export interface MemberInsight {

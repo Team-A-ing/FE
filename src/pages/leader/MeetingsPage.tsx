@@ -56,6 +56,8 @@ export default function MeetingsPage({
 
   const [showAllFuture, setShowAllFuture] = useState(false);
   const [historyPage, setHistoryPage] = useState(1);
+  const [filterMember, setFilterMember] = useState('');
+  const [filterMonth, setFilterMonth] = useState('');
   const [expandedActionMembers, setExpandedActionMembers] = useState<Set<number>>(new Set());
   const toggleActionMember = (memberId: number) =>
     setExpandedActionMembers((prev) => {
@@ -81,12 +83,27 @@ export default function MeetingsPage({
     (m) => !isWithinGrace(m.scheduledAt) || m.status === 'COMPLETED'
   );
 
+  const uniquePartners = useMemo(
+    () => [...new Set(historyMeetings.map((m) => m.partnerName).filter(Boolean))].sort(),
+    [historyMeetings]
+  );
+
+  const filteredHistory = useMemo(() => {
+    return historyMeetings.filter((m) => {
+      if (filterMember && m.partnerName !== filterMember) return false;
+      if (filterMonth && m.scheduledAt && !m.scheduledAt.startsWith(filterMonth)) return false;
+      return true;
+    });
+  }, [historyMeetings, filterMember, filterMonth]);
+
   const HISTORY_PAGE_SIZE = 10;
-  const totalHistoryPages = Math.max(1, Math.ceil(historyMeetings.length / HISTORY_PAGE_SIZE));
-  const paginatedHistory = historyMeetings.slice(
+  const totalHistoryPages = Math.max(1, Math.ceil(filteredHistory.length / HISTORY_PAGE_SIZE));
+  const paginatedHistory = filteredHistory.slice(
     (historyPage - 1) * HISTORY_PAGE_SIZE,
     historyPage * HISTORY_PAGE_SIZE
   );
+
+  useEffect(() => { setHistoryPage(1); }, [filterMember, filterMonth]);
 
   const { members: teamMembers, fetch: fetchTeamMembers } = useTeamMembers(teamId ?? '');
   useEffect(() => {
@@ -179,12 +196,44 @@ export default function MeetingsPage({
             </section>
 
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900">내 미팅 기록</h3>
                   <p className="text-sm text-gray-500">최근 1on1 이력을 확인할 수 있어요.</p>
                 </div>
-                <span className="text-sm text-gray-500">총 {historyMeetings.length}건</span>
+                <span className="text-sm text-gray-500">
+                  {filteredHistory.length !== historyMeetings.length
+                    ? `${filteredHistory.length} / ${historyMeetings.length}건`
+                    : `총 ${historyMeetings.length}건`}
+                </span>
+              </div>
+
+              <div className="mb-5 flex flex-wrap gap-2">
+                <select
+                  value={filterMember}
+                  onChange={(e) => setFilterMember(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                >
+                  <option value="">멤버 전체</option>
+                  {uniquePartners.map((name) => (
+                    <option key={name} value={name}>{name}</option>
+                  ))}
+                </select>
+                <input
+                  type="month"
+                  value={filterMonth}
+                  onChange={(e) => setFilterMonth(e.target.value)}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                />
+                {(filterMember || filterMonth) && (
+                  <button
+                    type="button"
+                    onClick={() => { setFilterMember(''); setFilterMonth(''); }}
+                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm text-gray-400 hover:text-gray-600"
+                  >
+                    초기화
+                  </button>
+                )}
               </div>
 
               {isLoading ? (
@@ -193,9 +242,9 @@ export default function MeetingsPage({
                     <div key={i} className="rounded-3xl border border-gray-200 bg-gray-100 p-4 h-16 animate-pulse" />
                   ))}
                 </div>
-              ) : historyMeetings.length === 0 ? (
+              ) : filteredHistory.length === 0 ? (
                 <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
-                  아직 기록된 미팅이 없습니다.
+                  {historyMeetings.length === 0 ? '아직 기록된 미팅이 없습니다.' : '필터 조건에 맞는 미팅이 없습니다.'}
                 </div>
               ) : (
                 <>
