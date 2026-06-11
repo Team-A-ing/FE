@@ -20,12 +20,6 @@ const PROMISE_STATUS: Record<MemberInsightPromiseStatus, { label: string; cls: s
   OVERDUE: { label: '연체', cls: 'bg-red-50 text-red-500' },
 };
 
-const LEVEL_CLS: Record<string, string> = {
-  좋음: 'bg-emerald-50 text-emerald-600',
-  보통: 'bg-gray-100 text-gray-600',
-  낮음: 'bg-red-50 text-red-500',
-};
-
 interface GroupEntry<T> {
   date: string;
   meetingTitle: string;
@@ -71,51 +65,32 @@ function SectionCard({ title, desc, children }: { title: string; desc?: string; 
   );
 }
 
-const LEVEL_NOTE: Record<string, string> = {
-  좋음: '고민·의견·제안을 자유롭게 꺼냄',
-  보통: '기본적인 소통이 이뤄짐',
-  낮음: '속내를 꺼내기 어려워한 신호',
-};
-
 function TrendSection({ points }: { points: MemberInsightTrendPoint[] }) {
   if (points.length === 0) {
     return <p className="text-sm text-gray-400">아직 분석된 미팅이 없습니다.</p>;
   }
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2 text-xs text-gray-400">
-        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-600">좋음 — 적극적 소통</span>
-        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-600">보통 — 기본 소통</span>
-        <span className="rounded-full bg-red-50 px-2 py-0.5 text-red-500">낮음 — 소통 제한적</span>
-      </div>
-      <ul className="flex flex-col gap-2">
-        {points.map((p, i) => {
-          const prev = i > 0 ? points[i - 1].healthScore : null;
-          const diff = prev === null ? null : Math.round((p.healthScore - prev) * 10) / 10;
-          const arrow = diff === null ? '' : diff >= 3 ? '↑ 이전보다 좋아짐' : diff <= -3 ? '↓ 이전보다 낮아짐' : '≈ 이전과 비슷';
-          const arrowCls = diff === null ? 'text-gray-300'
-            : diff >= 3 ? 'text-emerald-600' : diff <= -3 ? 'text-red-500' : 'text-gray-400';
-          return (
-            <li key={p.round} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-gray-800">{p.round}회차</span>
-                  <span className="text-xs text-gray-400">{p.date ?? ''}</span>
-                  {p.meetingTitle && <span className="text-xs text-gray-400">· {p.meetingTitle}</span>}
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${LEVEL_CLS[p.level] ?? 'bg-gray-100 text-gray-600'}`}>
-                    {p.level}
-                  </span>
-                  {arrow && <span className={`text-xs font-medium ${arrowCls}`}>{arrow}</span>}
-                </div>
+    <ul className="flex flex-col gap-2">
+      {points.map((p, i) => {
+        const prev = i > 0 ? points[i - 1].healthScore : null;
+        const diff = prev === null ? null : Math.round((p.healthScore - prev) * 10) / 10;
+        const arrow = diff === null ? '' : diff >= 3 ? '↑ 이전보다 좋아짐' : diff <= -3 ? '↓ 이전보다 낮아짐' : '≈ 이전과 비슷';
+        const arrowCls = diff === null ? 'text-gray-300'
+          : diff >= 3 ? 'text-emerald-600' : diff <= -3 ? 'text-red-500' : 'text-gray-400';
+        return (
+          <li key={p.round} className="rounded-lg border border-gray-100 bg-gray-50 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-800">{p.round}회차</span>
+                <span className="text-xs text-gray-400">{p.date ?? ''}</span>
+                {p.meetingTitle && <span className="text-xs text-gray-400">· {p.meetingTitle}</span>}
               </div>
-              <p className="mt-1 text-xs text-gray-400">{LEVEL_NOTE[p.level]}</p>
-            </li>
-          );
-        })}
-      </ul>
-    </div>
+              {arrow && <span className={`text-xs font-medium ${arrowCls}`}>{arrow}</span>}
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 

@@ -2,7 +2,7 @@ import PageLayout from '@/components/layout/PageLayout';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import { useLeaderGrowth } from '@/features/leader/useLeaderGrowth';
-import type { MonthlyTrendPoint } from '@/types/leaderGrowth';
+import type { MemberCadence, MonthlyTrendPoint } from '@/types/leaderGrowth';
 
 const RECOMMENDED_LEADER_RATIO = 40;
 
@@ -23,10 +23,12 @@ function TrendRows({
   points,
   unit,
   colorOf,
+  max = 100,
 }: {
   points: MonthlyTrendPoint[];
   unit: string;
   colorOf: (value: number) => string;
+  max?: number;
 }) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -38,7 +40,7 @@ function TrendRows({
           <div className="h-2 flex-1 overflow-hidden rounded-full bg-gray-100">
             <div
               className={`h-full rounded-full transition-all ${colorOf(p.value)}`}
-              style={{ width: `${Math.min(p.value, 100)}%` }}
+              style={{ width: `${Math.min((p.value / max) * 100, 100)}%` }}
             />
           </div>
           <span className="w-14 flex-shrink-0 text-right text-sm font-semibold text-gray-800">
@@ -59,6 +61,38 @@ function TrendEmpty({ message }: { message: string }) {
     <div className="flex min-h-[120px] items-center justify-center">
       <p className="text-sm font-medium text-gray-400">{message}</p>
     </div>
+  );
+}
+
+// ── 멤버별 1on1 주기 ────────────────────────────────────────────────────────
+
+function cadenceStyle(days: number | null) {
+  if (days === null) return { label: '아직 1on1 없음', cls: 'bg-red-50 text-red-500' };
+  if (days >= 30) return { label: `${days}일 전`, cls: 'bg-red-50 text-red-500' };
+  if (days >= 14) return { label: `${days}일 전`, cls: 'bg-amber-50 text-amber-600' };
+  return { label: days === 0 ? '오늘' : `${days}일 전`, cls: 'bg-gray-100 text-gray-600' };
+}
+
+function CadenceList({ items }: { items: MemberCadence[] }) {
+  return (
+    <ul className="flex flex-col gap-1.5">
+      {items.map((m) => {
+        const { label, cls } = cadenceStyle(m.daysSinceLastMeeting);
+        return (
+          <li key={m.memberId} className="flex items-center justify-between gap-2">
+            <span className="text-sm text-gray-700">{m.memberName}</span>
+            <div className="flex items-center gap-2">
+              {m.lastMeetingDate && (
+                <span className="text-[11px] text-gray-400">{m.lastMeetingDate}</span>
+              )}
+              <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>
+                {label}
+              </span>
+            </div>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -93,6 +127,18 @@ export default function LeaderGrowthPage() {
 
         {!loading && !error && data && (
           <div className="mt-5 flex flex-col gap-4">
+            {/* 핵심 인사이트: 리더 행동 변화 → 팀 신호 변화 */}
+            {data.keyInsight && (
+              <Card className="border border-teal-200 bg-teal-50 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">
+                  나의 변화가 만든 팀의 변화
+                </p>
+                <p className="mt-2 text-base font-semibold leading-relaxed text-gray-900">
+                  {data.keyInsight}
+                </p>
+              </Card>
+            )}
+
             {/* 하이라이트 */}
             {data.highlights.length > 0 && (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -146,43 +192,81 @@ export default function LeaderGrowthPage() {
                   )}
                 </div>
               </Card>
-            </div>
 
-            {/* 약속 이행 통계 */}
-            <Card className="p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                내 약속 이행
-              </p>
-              <p className="mt-1 text-xs text-gray-400">
-                1on1에서 팀원에게 약속한 항목의 이행 현황 — 약속을 지키는 리더가 솔직한 대화를 만듭니다.
-              </p>
-              {data.promiseStats.total > 0 ? (
-                <div className="mt-4 flex items-end gap-8">
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">
-                      {Math.round(data.promiseStats.doneRate)}%
-                    </p>
-                    <p className="mt-0.5 text-xs text-gray-400">이행률</p>
-                  </div>
-                  <div className="flex gap-6 pb-1">
-                    <div>
-                      <p className="text-lg font-semibold text-teal-600">{data.promiseStats.done}</p>
-                      <p className="text-xs text-gray-400">이행</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold text-gray-700">{data.promiseStats.pending}</p>
-                      <p className="text-xs text-gray-400">대기</p>
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold text-red-500">{data.promiseStats.missed}</p>
-                      <p className="text-xs text-gray-400">미이행</p>
-                    </div>
-                  </div>
+              {/* 1on1 운영 규칙성 */}
+              <Card className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  1on1 운영 규칙성
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  월별 진행한 1on1 횟수 — 꾸준함이 신뢰의 기본입니다
+                </p>
+                <div className="mt-4">
+                  {data.monthlyMeetings.length > 0 ? (
+                    <TrendRows
+                      points={data.monthlyMeetings}
+                      unit="건"
+                      colorOf={() => 'bg-sky-400'}
+                      max={Math.max(...data.monthlyMeetings.map((p) => p.value), 1)}
+                    />
+                  ) : (
+                    <TrendEmpty message="최근 6개월간 진행한 1on1이 없습니다." />
+                  )}
                 </div>
-              ) : (
-                <TrendEmpty message="아직 등록한 약속이 없습니다." />
-              )}
-            </Card>
+                {data.memberCadence.length > 0 && (
+                  <div className="mt-5 border-t border-gray-100 pt-4">
+                    <p className="mb-2.5 text-xs font-semibold text-gray-500">
+                      멤버별 마지막 1on1
+                    </p>
+                    <CadenceList items={data.memberCadence} />
+                  </div>
+                )}
+              </Card>
+
+              {/* 코칭 실행률 */}
+              <Card className="p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  코칭 실행률
+                </p>
+                <p className="mt-1 text-xs text-gray-400">
+                  미팅 후 제안된 액션 플랜 중 실제로 실행한 비율
+                </p>
+                {data.coachingExecution.total > 0 ? (
+                  <div className="mt-4 flex items-end gap-8">
+                    <div>
+                      <p className="text-3xl font-bold text-gray-900">
+                        {Math.round(data.coachingExecution.executionRate)}%
+                      </p>
+                      <p className="mt-0.5 text-xs text-gray-400">실행률</p>
+                    </div>
+                    <p className="pb-1 text-sm text-gray-600">
+                      받은 제안 <span className="font-semibold">{data.coachingExecution.total}건</span> 중{' '}
+                      <span className="font-semibold text-teal-600">{data.coachingExecution.completed}건</span> 실행
+                    </p>
+                  </div>
+                ) : (
+                  <TrendEmpty message="아직 제안된 액션 플랜이 없습니다." />
+                )}
+                <div className="mt-5 border-t border-gray-100 pt-4">
+                  <p className="mb-2.5 text-xs font-semibold text-gray-500">내 약속 이행</p>
+                  {data.promiseStats.total > 0 ? (
+                    <div className="flex items-center gap-6">
+                      <p className="text-xl font-bold text-gray-900">
+                        {Math.round(data.promiseStats.doneRate)}%
+                        <span className="ml-1 text-xs font-normal text-gray-400">이행률</span>
+                      </p>
+                      <div className="flex gap-4 text-sm">
+                        <span className="text-teal-600">이행 {data.promiseStats.done}</span>
+                        <span className="text-gray-500">대기 {data.promiseStats.pending}</span>
+                        <span className="text-red-500">미이행 {data.promiseStats.missed}</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400">아직 등록한 약속이 없습니다.</p>
+                  )}
+                </div>
+              </Card>
+            </div>
           </div>
         )}
       </div>

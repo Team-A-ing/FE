@@ -32,6 +32,7 @@ export interface PromiseSummaryItem {
   createdAt: string
   round: number
   isCompleted: boolean
+  partnerName?: string | null // 리더 약속에서만: 어느 멤버와의 미팅에서 한 약속인지
 }
 
 export interface MemberPromiseSummary {
@@ -44,6 +45,11 @@ export interface MemberPromiseSummary {
     pending: number
     overdue: number
   }
+}
+
+export interface TeamPromiseSummaryData {
+  leaderPromises: MemberPromiseSummary | null
+  memberPromises: MemberPromiseSummary[]
 }
 
 export interface PromiseReminderItem {

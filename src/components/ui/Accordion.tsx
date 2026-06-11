@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 
 interface AccordionProps {
-  title: string;
+  title: ReactNode;
   children: ReactNode;
   rightElement?: ReactNode;
   defaultOpen?: boolean;

@@ -1,6 +1,6 @@
 import apiClient from './client';
 import type { ApiResponse } from './types';
-import type { MemberPromiseSummary, OverduePromise, PromiseReminderData } from '@/types/promise';
+import type { OverduePromise, PromiseReminderData, TeamPromiseSummaryData } from '@/types/promise';
 
 export async function fetchOverduePromises(memberId?: number | string): Promise<OverduePromise[]> {
   const res = await apiClient.get<ApiResponse<OverduePromise[]>>('/api/v1/promises/overdue', {
@@ -10,11 +10,11 @@ export async function fetchOverduePromises(memberId?: number | string): Promise<
   return res.data.data;
 }
 
-export async function fetchPromiseSummary(teamId: string): Promise<MemberPromiseSummary[]> {
-  const res = await apiClient.get<ApiResponse<{ memberPromises: MemberPromiseSummary[] }>>(
+export async function fetchPromiseSummary(teamId: string): Promise<TeamPromiseSummaryData> {
+  const res = await apiClient.get<ApiResponse<TeamPromiseSummaryData>>(
     `/api/v1/teams/${teamId}/promises/summary`,
   );
-  return res.data.data.memberPromises;
+  return res.data.data;
 }
 
 export async function completePromise(promiseId: string): Promise<void> {
