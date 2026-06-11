@@ -7,8 +7,8 @@ export interface CareerStats {
   teamName: string;
   totalMeetings: number;
   achievementCount: number;
-  leaderEndorsementCount: number;
-  contributionPercentile: number;
+  promiseFulfillmentRate: number;
+  completedActionCount: number;
   aiSummary: string;
 }
 

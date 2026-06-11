@@ -42,8 +42,8 @@ export default function CareerProfileCard({ stats, onEdit }: CareerProfileCardPr
             <div className="mt-4 flex flex-wrap gap-x-7 gap-y-4">
               <StatItem value={`${stats.totalMeetings}회`} label="총 1on1" />
               <StatItem value={`${stats.achievementCount}건`} label="성취" />
-              <StatItem value={`${stats.leaderEndorsementCount}회`} label="리더 공인" />
-              <StatItem value={`상위 ${stats.contributionPercentile}%`} label="기여도" />
+              <StatItem value={`${stats.promiseFulfillmentRate}%`} label="약속 이행률" />
+              <StatItem value={`${stats.completedActionCount}개`} label="완료된 액션" />
             </div>
           </div>
         </div>

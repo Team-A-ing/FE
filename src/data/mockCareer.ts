@@ -7,8 +7,8 @@ export const MOCK_CAREER_STATS: CareerStats = {
   teamName: 'Product A팀',
   totalMeetings: 12,
   achievementCount: 6,
-  leaderEndorsementCount: 12,
-  contributionPercentile: 15,
+  promiseFulfillmentRate: 75.0,
+  completedActionCount: 8,
   aiSummary:
     '결제 MSA 전환, 검색 성능 개선, 팀 DX 리드까지 기술적 역량과 팀 임팩트를 동시에 만드는 엔지니어입니다.',
 };
