@@ -160,8 +160,16 @@ export default function LeaderDashboard() {
   // 낮은 점수(위험) 우선 정렬
   const memberStatusItems = [...radarItems].sort((a, b) => a.safetyScore - b.safetyScore);
   const blockerKeywords = blockerPyramid?.blockerKeywords ?? [];
+  // 처방 제목은 서버에서 `${keyword} 반복 언급`으로 생성되므로 키워드 매칭으로
+  // 해당 블로커를 언급한 멤버 목록을 붙임 (클릭 시 누가 언급했는지 표시)
   const actionFeedbackItems = useMemo(() => {
-    return blockerPyramid?.actionPrescriptions ?? [];
+    const prescriptions = blockerPyramid?.actionPrescriptions ?? [];
+    const keywords = blockerPyramid?.blockerKeywords ?? [];
+    return prescriptions.map((p) => {
+      const matched = keywords.find((k) => p.title === `${k.keyword} 반복 언급`)
+        ?? keywords.find((k) => p.title.startsWith(k.keyword));
+      return { ...p, relatedMembers: matched?.relatedMembers };
+    });
   }, [blockerPyramid]);
 
   return (
