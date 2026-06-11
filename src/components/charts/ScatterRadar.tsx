@@ -22,7 +22,7 @@ const DIRECTION_LABELS: Record<RadarDataPoint['direction'], string> = {
   UNDERREPORT: '행동 점수 높음',
 };
 
-const QUADRANT_LABELS: Record<RadarQuadrant, string> = {
+export const QUADRANT_LABELS: Record<RadarQuadrant, string> = {
   STABLE: '안정',
   SILENT_RISK: '주의',
   EXPLICIT_RISK: '위험',
@@ -42,7 +42,7 @@ const QUADRANT_STYLE: Record<RadarQuadrant, { fill: string; stroke: string; text
 // 분기점 45: safety 기준선이 40(발화 없음)이라, 발화가 조금이라도 있으면 상단으로 가도록 BE와 정렬.
 const QUADRANT_THRESHOLD = 45;
 
-function getQuadrant(point: RadarDataPoint, threshold: number = QUADRANT_THRESHOLD): RadarQuadrant {
+export function getQuadrant(point: RadarDataPoint, threshold: number = QUADRANT_THRESHOLD): RadarQuadrant {
   const sHigh = point.safetyScore >= threshold;
   const svHigh = point.surveyScore >= threshold;
   if (svHigh && sHigh) return 'STABLE';

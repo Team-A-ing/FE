@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import type React from 'react';
 import Card from '@/components/ui/Card';
 import type { TeamHealthScoreData, TeamHealthTrend } from '@/types/teamHealth';
@@ -23,10 +22,7 @@ const trendLabels: Record<TeamHealthTrend, string> = {
 const TEAM_HEALTH_BAR_COLOR = '#2dd4bf';
 
 export default function TeamHealthScoreCard({ data, coachingSlot }: TeamHealthScoreCardProps) {
-  const [alertsOpen, setAlertsOpen] = useState(false);
   const score = Math.round(data.teamHealthScore);
-  const alerts = data.alerts ?? [];
-  const hasAlerts = alerts.length > 0;
   const delta = data.trendDelta;
   const hasDelta = typeof delta === 'number';
   const deltaStyle =
@@ -82,36 +78,6 @@ export default function TeamHealthScoreCard({ data, coachingSlot }: TeamHealthSc
             {coachingSlot}
           </div>
         )}
-
-        <div className="border-t border-gray-100 pt-4">
-          <button
-            type="button"
-            onClick={() => setAlertsOpen((open) => !open)}
-            className="flex w-full items-center justify-between text-left text-sm font-semibold text-gray-700"
-            aria-expanded={alertsOpen}
-          >
-            <span>이상 탐지 알림 {hasAlerts ? alerts.length : 0}건</span>
-            <span className="text-xs text-gray-400">{alertsOpen ? '접기' : '펼치기'}</span>
-          </button>
-
-          {alertsOpen && (
-            <div className="mt-3">
-              {hasAlerts ? (
-                <ul className="space-y-2 text-sm leading-relaxed text-gray-700">
-                  {alerts.map((alert) => (
-                    <li key={alert}>
-                      {alert}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-500">
-                  표시할 이상 탐지 알림이 없습니다.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
       </div>
     </Card>
   );

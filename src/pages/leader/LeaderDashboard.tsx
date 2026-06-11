@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import PageLayout from '@/components/layout/PageLayout';
-import ScatterRadar from '@/components/charts/ScatterRadar';
+import ScatterRadar, { getQuadrant, QUADRANT_LABELS } from '@/components/charts/ScatterRadar';
 import BlockerPyramid from '@/components/charts/BlockerPyramid';
 import ActionFeedbackList from '@/components/feedback/ActionFeedbackList';
 import TeamHealthScoreCard from '@/components/feedback/TeamHealthScoreCard';
@@ -10,7 +10,6 @@ import Badge from '@/components/ui/Badge';
 import { useRadarData } from '@/features/leader/useRadarData';
 import { useBlockerPyramid } from '@/features/leader/useBlockerPyramid';
 import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
-import { useTalkRatioRanking } from '@/features/leader/useTalkRatioRanking';
 import PromiseSummaryCard from '@/components/report/PromiseSummaryCard';
 import { usePromiseSummary } from '@/features/leader/usePromiseSummary';
 import { usePromiseReminders } from '@/features/leader/usePromiseReminders';
@@ -18,38 +17,43 @@ import { useAuthStore } from '@/stores/authStore';
 import TeamCoachingCard from '@/components/feedback/TeamCoachingCard';
 import { useTeamCoaching } from '@/features/leader/useTeamCoaching';
 import { ROUTES } from '@/constants/routes';
-import type { CommunicationBalance } from '@/types/analysis';
+import type { RadarDataPoint, RadarQuadrant } from '@/types/analysis';
 
-// ── Talk Ratio Bar ─────────────────────────────────────────────────────────────
+// ── Team Member Status Row ─────────────────────────────────────────────────────
+// 레이더와 동일한 점수(safetyScore)·사분면 기준(45)을 바 형태로 표시
 
-function TalkRatioBar({
-  memberRatio,
-}: {
-  memberRatio: number;
-}) {
-  return (
-    <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
-      <div
-        className="h-full rounded-full bg-teal-400 transition-all"
-        style={{ width: `${memberRatio}%` }}
-      />
-    </div>
-  );
-}
+const QUADRANT_BADGE_COLOR: Record<RadarQuadrant, 'red' | 'yellow' | 'green' | 'gray'> = {
+  STABLE: 'green',
+  SILENT_RISK: 'yellow',
+  EXPLICIT_RISK: 'red',
+  CONSERVATIVE: 'gray',
+};
 
-// ── Communication Balance Row ─────────────────────────────────────────────────
+const QUADRANT_BAR_COLOR: Record<RadarQuadrant, string> = {
+  STABLE: 'bg-teal-400',
+  SILENT_RISK: 'bg-amber-400',
+  EXPLICIT_RISK: 'bg-red-400',
+  CONSERVATIVE: 'bg-indigo-400',
+};
 
-function CommRow({ item }: { item: CommunicationBalance }) {
-  const badgeColor =
-    item.status === '위험' ? 'red' : item.status === '관찰' ? 'yellow' : 'green';
+function MemberStatusRow({ item }: { item: RadarDataPoint }) {
+  const quadrant = getQuadrant(item);
 
   return (
     <div className="flex items-center gap-3 py-1.5">
-      <span className="text-sm text-gray-600 w-10 flex-shrink-0">{item.name}</span>
+      <span className="text-sm text-gray-600 w-10 flex-shrink-0">{item.memberName}</span>
       <div className="flex-1 min-w-0">
-        <TalkRatioBar memberRatio={item.memberRatio} />
+        <div className="w-full h-1.5 rounded-full bg-gray-100 overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${QUADRANT_BAR_COLOR[quadrant]}`}
+            style={{ width: `${Math.min(100, Math.max(0, item.safetyScore))}%` }}
+          />
+        </div>
       </div>
-      <Badge label={item.status} color={badgeColor} />
+      <span className="w-7 flex-shrink-0 text-right text-xs font-semibold text-gray-700">
+        {Math.round(item.safetyScore)}
+      </span>
+      <Badge label={QUADRANT_LABELS[quadrant]} color={QUADRANT_BADGE_COLOR[quadrant]} />
     </div>
   );
 }
@@ -141,11 +145,6 @@ export default function LeaderDashboard() {
     error: teamHealthError,
   } = useTeamHealthScore(teamId);
   const {
-    data: talkRatioRankings,
-    loading: talkRatioLoading,
-    error: talkRatioError,
-  } = useTalkRatioRanking(teamId);
-  const {
     data: promiseSummary,
     loading: promisesLoading,
     error: promisesError,
@@ -158,7 +157,8 @@ export default function LeaderDashboard() {
   } = useTeamCoaching(teamId);
   const [activeTab, setActiveTab] = useState<ChartTab>('radar');
   const radarItems = radarData ?? [];
-  const communicationItems = talkRatioRankings ?? [];
+  // 낮은 점수(위험) 우선 정렬
+  const memberStatusItems = [...radarItems].sort((a, b) => a.safetyScore - b.safetyScore);
   const blockerKeywords = blockerPyramid?.blockerKeywords ?? [];
   const actionFeedbackItems = useMemo(() => {
     return blockerPyramid?.actionPrescriptions ?? [];
@@ -314,27 +314,27 @@ export default function LeaderDashboard() {
           </Card>
           </div>
 
-          {/* Right: Communication Balance */}
+          {/* Right: Team Member Status */}
           <div className="w-[360px] flex-shrink-0 flex flex-col gap-4">
-            {/* Communication Balance */}
+            {/* Team Member Status */}
             <Card className="p-4">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                1on1 소통 균형
+                팀 멤버 상태
               </p>
               <div className="flex flex-col">
-                {talkRatioLoading && (
-                  <p className="py-4 text-sm font-medium text-gray-400">1on1 소통 균형 데이터를 불러오는 중입니다.</p>
+                {radarLoading && (
+                  <p className="py-4 text-sm font-medium text-gray-400">팀 멤버 상태 데이터를 불러오는 중입니다.</p>
                 )}
-                {!talkRatioLoading && talkRatioError && (
-                  <ErrorState label="1on1 소통 균형" />
+                {!radarLoading && radarError && (
+                  <ErrorState label="팀 멤버 상태" />
                 )}
-                {!talkRatioLoading && !talkRatioError && communicationItems.length > 0 ? (
-                  communicationItems.map((item) => (
-                    <CommRow key={item.memberId} item={item} />
+                {!radarLoading && !radarError && memberStatusItems.length > 0 ? (
+                  memberStatusItems.map((item) => (
+                    <MemberStatusRow key={item.memberId} item={item} />
                   ))
                 ) : null}
-                {!talkRatioLoading && !talkRatioError && communicationItems.length === 0 && (
-                  <p className="py-4 text-sm font-medium text-gray-400">아직 1on1 소통 균형 데이터가 없습니다.</p>
+                {!radarLoading && !radarError && memberStatusItems.length === 0 && (
+                  <p className="py-4 text-sm font-medium text-gray-400">아직 팀 멤버 상태 데이터가 없습니다.</p>
                 )}
               </div>
             </Card>
