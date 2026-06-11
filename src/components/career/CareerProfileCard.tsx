@@ -4,6 +4,7 @@ import type { CareerStats } from '@/types/career';
 
 interface CareerProfileCardProps {
   stats: CareerStats;
+  onEdit?: () => void;
 }
 
 function getInitial(name: string) {
@@ -19,7 +20,7 @@ function StatItem({ value, label }: { value: string | number; label: string }) {
   );
 }
 
-export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
+export default function CareerProfileCard({ stats, onEdit }: CareerProfileCardProps) {
   const displayJobTitle = stats.jobTitle?.trim() || '팀원';
   const displayAiSummary =
     stats.aiSummary?.trim() || `${stats.teamName}팀의 ${displayJobTitle} 입니다.`;
@@ -47,7 +48,18 @@ export default function CareerProfileCard({ stats }: CareerProfileCardProps) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-wrap">
+        <div className="flex shrink-0 flex-wrap gap-2">
+          {onEdit && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={onEdit}
+              className="rounded-lg border border-gray-200 bg-gray-50 text-slate-700 hover:bg-gray-100"
+            >
+              프로필 수정
+            </Button>
+          )}
           <Button
             type="button"
             variant="secondary"

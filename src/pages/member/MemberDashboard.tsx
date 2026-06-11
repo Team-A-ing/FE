@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CareerProfileCard from '@/components/career/CareerProfileCard';
 import CareerTimelineSection from '@/components/career/CareerTimelineSection';
 import ShowcaseSection from '@/components/career/ShowcaseSection';
@@ -6,6 +7,7 @@ import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import { useCareerDashboard } from '@/features/member/useCareerDashboard';
 import { useAuthStore } from '@/stores/authStore';
+import { updateProfile } from '@/api/user';
 
 function renderSectionFallback(message: string) {
   return (
@@ -62,18 +64,94 @@ function renderDashboardSkeleton() {
 
 export default function MemberDashboard() {
   const user = useAuthStore((state) => state.user);
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const token = useAuthStore((state) => state.token);
   const memberId = user?.id;
-  const { data, loading, errors } = useCareerDashboard(memberId);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const { data, loading, errors } = useCareerDashboard(memberId, refreshKey);
+
+  const [editOpen, setEditOpen] = useState(false);
+  const [editName, setEditName] = useState('');
+  const [editJobTitle, setEditJobTitle] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  function openEdit() {
+    setEditName(user?.name ?? '');
+    setEditJobTitle(user?.jobTitle ?? '');
+    setEditError(null);
+    setEditOpen(true);
+  }
+
+  async function handleSave() {
+    if (!editName.trim()) { setEditError('이름을 입력해주세요.'); return; }
+    setSaving(true);
+    setEditError(null);
+    try {
+      const updated = await updateProfile(editName.trim(), editJobTitle.trim() || null);
+      setAuth(updated, token ?? '');
+      setRefreshKey((k) => k + 1);
+      setEditOpen(false);
+    } catch {
+      setEditError('저장에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <PageLayout>
       <div className="min-h-full">
+        {editOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="w-full max-w-sm rounded-xl bg-white p-6 shadow-xl">
+              <h2 className="text-base font-semibold text-gray-900">프로필 수정</h2>
+              <div className="mt-4 flex flex-col gap-3">
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">이름</label>
+                  <input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs font-medium text-gray-500">직함</label>
+                  <input
+                    value={editJobTitle}
+                    onChange={(e) => setEditJobTitle(e.target.value)}
+                    placeholder="예) 프론트엔드 개발자"
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                </div>
+                {editError && <p className="text-xs text-red-500">{editError}</p>}
+              </div>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(false)}
+                  className="rounded-lg border border-gray-200 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                >
+                  취소
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50"
+                >
+                  {saving ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
         {loading ? (
           renderDashboardSkeleton()
         ) : (
           <div className="mx-auto flex max-w-[1120px] flex-col gap-5 p-5 sm:p-6">
             {data.stats ? (
-              <CareerProfileCard stats={data.stats} />
+              <CareerProfileCard stats={data.stats} onEdit={openEdit} />
             ) : (
               renderSectionFallback(
                 errors.stats ?? '프로필 정보를 불러오지 못했습니다. 다시 시도해주세요.',

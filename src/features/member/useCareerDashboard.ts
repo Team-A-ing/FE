@@ -25,7 +25,7 @@ const initialData: CareerDashboardData = {
   timeline: [],
 };
 
-export function useCareerDashboard(memberId: string | undefined) {
+export function useCareerDashboard(memberId: string | undefined, refreshKey?: number) {
   const [data, setData] = useState<CareerDashboardData>(initialData);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState<CareerDashboardErrors>({});
@@ -95,7 +95,7 @@ export function useCareerDashboard(memberId: string | undefined) {
     return () => {
       cancelled = true;
     };
-  }, [memberId]);
+  }, [memberId, refreshKey]);
 
   return { data, loading, errors };
 }
