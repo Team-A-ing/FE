@@ -29,6 +29,13 @@ const BarChartIcon = () => (
   </svg>
 );
 
+const TrendingUpIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </svg>
+);
+
 const SettingsIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="3" />
@@ -56,6 +63,7 @@ const LogoutIcon = () => (
 const navItems: NavItem[] = [
   { label: '1on1 미팅', path: '/leader/meetings', icon: <CalendarIcon /> },
   { label: '팀 인사이트 대시보드', path: '/leader/dashboard', icon: <BarChartIcon /> },
+  { label: '나의 리더십 성장', path: '/leader/growth', icon: <TrendingUpIcon /> },
 ];
 
 const bottomItems = [
@@ -129,14 +137,16 @@ export default function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
     });
   };
 
-  const roleNavItems = navItems.map((item) => {
-    if (user?.role !== 'member') return item;
-    if (item.path === '/leader/meetings') return { ...item, path: '/member/meetings' };
-    if (item.path === '/leader/dashboard') {
-      return { ...item, label: '나의 커리어 메모리', path: '/member/dashboard' };
-    }
-    return item;
-  });
+  const roleNavItems = navItems
+    .filter((item) => user?.role !== 'member' || item.path !== '/leader/growth')
+    .map((item) => {
+      if (user?.role !== 'member') return item;
+      if (item.path === '/leader/meetings') return { ...item, path: '/member/meetings' };
+      if (item.path === '/leader/dashboard') {
+        return { ...item, label: '나의 커리어 메모리', path: '/member/dashboard' };
+      }
+      return item;
+    });
 
   const isMeetingActive =
     location.pathname === '/leader/meetings' ||

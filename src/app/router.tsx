@@ -6,6 +6,7 @@ import LeaderDashboard from '@/pages/leader/LeaderDashboard';
 import MeetingsPage from '@/pages/leader/MeetingsPage';
 import LeaderMeetingDetailPage from '@/pages/leader/MeetingDetailPage';
 import LeaderMemberDetailPage from '@/pages/leader/LeaderMemberDetailPage';
+import LeaderGrowthPage from '@/pages/leader/LeaderGrowthPage';
 import PromiseLedgerPage from '@/pages/leader/PromiseLedgerPage';
 import TeamSetupPage from '@/pages/leader/TeamSetupPage';
 import MemberDashboard from '@/pages/member/MemberDashboard';
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
   { path: '/leader/meetings', element: <RequiresTeam><MeetingsPage /></RequiresTeam> },
   { path: '/leader/meeting/:meetingId', element: <RequiresTeam><LeaderMeetingDetailPage /></RequiresTeam> },
   { path: '/leader/member/:memberId', element: <RequiresTeam><LeaderMemberDetailPage /></RequiresTeam> },
+  { path: '/leader/growth', element: <RequiresTeam><LeaderGrowthPage /></RequiresTeam> },
   { path: '/leader/promises', element: <RequiresTeam><PromiseLedgerPage /></RequiresTeam> },
   { path: '/leader/reports', element: <RequiresTeam><LeaderDashboard /></RequiresTeam> },
   { path: '/leader/overview', element: <RequiresTeam><LeaderDashboard /></RequiresTeam> },
