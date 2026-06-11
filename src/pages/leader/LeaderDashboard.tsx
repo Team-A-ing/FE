@@ -13,6 +13,7 @@ import { useTeamHealthScore } from '@/features/leader/useTeamHealthScore';
 import { useTalkRatioRanking } from '@/features/leader/useTalkRatioRanking';
 import PromiseSummaryCard from '@/components/report/PromiseSummaryCard';
 import { usePromiseSummary } from '@/features/leader/usePromiseSummary';
+import { usePromiseReminders } from '@/features/leader/usePromiseReminders';
 import { useAuthStore } from '@/stores/authStore';
 import TeamCoachingCard from '@/components/feedback/TeamCoachingCard';
 import { useTeamCoaching } from '@/features/leader/useTeamCoaching';
@@ -50,6 +51,54 @@ function CommRow({ item }: { item: CommunicationBalance }) {
       </div>
       <Badge label={item.status} color={badgeColor} />
     </div>
+  );
+}
+
+// ── Promise Reminder Banner ────────────────────────────────────────────────────
+
+function PromiseReminderBanner() {
+  const { data, loading } = usePromiseReminders();
+  if (loading || !data) return null;
+  const { overdue, dueSoon } = data;
+  if (overdue.length === 0 && dueSoon.length === 0) return null;
+
+  return (
+    <Card className="mb-5 border border-amber-200 bg-amber-50 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-amber-900">
+          약속 리마인더
+          {overdue.length > 0 && ` — 기한 초과 ${overdue.length}건`}
+          {dueSoon.length > 0 && ` · 마감 임박 ${dueSoon.length}건`}
+        </p>
+        <span className="flex-shrink-0 text-xs text-amber-700">
+          미이행 약속은 다음 미팅 브리핑에 자동 반영됩니다
+        </span>
+      </div>
+      <ul className="mt-2.5 flex flex-col gap-1.5">
+        {overdue.map((item) => (
+          <li key={item.promiseId} className="flex items-center gap-2 text-sm">
+            <span className="flex-shrink-0 rounded bg-red-100 px-1.5 py-0.5 text-[11px] font-semibold text-red-600">
+              {-item.daysLeft}일 지남
+            </span>
+            <span className="truncate text-gray-800">{item.content}</span>
+            <span className="flex-shrink-0 text-xs text-gray-400">
+              {item.memberName} · {item.dueDate}
+            </span>
+          </li>
+        ))}
+        {dueSoon.map((item) => (
+          <li key={item.promiseId} className="flex items-center gap-2 text-sm">
+            <span className="flex-shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">
+              D-{item.daysLeft}
+            </span>
+            <span className="truncate text-gray-800">{item.content}</span>
+            <span className="flex-shrink-0 text-xs text-gray-400">
+              {item.memberName} · {item.dueDate}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </Card>
   );
 }
 
@@ -120,6 +169,8 @@ export default function LeaderDashboard() {
       <div className="p-6 max-w-[1400px] mx-auto">
         {/* Page Title */}
         <h1 className="text-xl font-bold text-gray-900 mb-5">팀 인사이트 대시보드</h1>
+
+        <PromiseReminderBanner />
 
         {teamHealthLoading && (
           <Card className="mb-5 p-5">

@@ -45,3 +45,17 @@ export interface MemberPromiseSummary {
     overdue: number
   }
 }
+
+export interface PromiseReminderItem {
+  promiseId: number
+  content: string
+  dueDate: string
+  daysLeft: number
+  memberName: string
+  meetingTitle: string
+}
+
+export interface PromiseReminderData {
+  overdue: PromiseReminderItem[]
+  dueSoon: PromiseReminderItem[]
+}
