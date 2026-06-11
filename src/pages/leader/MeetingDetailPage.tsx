@@ -234,9 +234,9 @@ export default function MeetingDetailPage() {
               >
                 1on1 미팅 시작하기
               </button>
-              {import.meta.env.VITE_SKIP_RECORDING === 'true' && surveyDone && (
+              {surveyDone && (
                 <label className="mt-2 cursor-pointer px-6 py-2 rounded-full border border-dashed border-gray-400 text-sm text-gray-500 hover:border-[#5F74FA] hover:text-[#5F74FA] transition-colors">
-                  [테스트] 파일 선택해서 업로드
+                  파일 선택해서 업로드
                   <input
                     type="file"
                     accept="audio/*,.webm"
