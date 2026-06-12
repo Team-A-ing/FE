@@ -25,7 +25,7 @@ export function useTeamActionItems(teamId?: string) {
       } catch {
         if (!ignore) {
           setData([]);
-          setError('액션 아이템을 불러오지 못했습니다.');
+          setError('아직 정해진 액션이 없습니다.');
         }
       } finally {
         if (!ignore) setLoading(false);
