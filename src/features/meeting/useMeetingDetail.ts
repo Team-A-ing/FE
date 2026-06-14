@@ -4,6 +4,7 @@ import type { MeetingDetail } from '@/types/meeting';
 // 테스트용 데이터(백엔드 연결 시 삭제)
 const MOCK_MEETING: MeetingDetail = {
   meetingId: 0,
+  memberId: 0,
   round: 1,
   scheduledAt: new Date().toISOString(),
   durationSec: null,

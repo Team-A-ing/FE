@@ -6,6 +6,7 @@ export default function MemberMeetingsPage() {
     <LeaderMeetingsPage
       showCreateButton={false}
       getMeetingPath={ROUTES.MEMBER_MEETING}
+      showTeamPanels={false}
     />
   );
 }

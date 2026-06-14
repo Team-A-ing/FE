@@ -32,6 +32,7 @@ export type MeetingApiStatus = "CREATED" | "TRANSCRIBING" | "ANALYZING" | "COMPL
 
 export interface MeetingDetail {
   meetingId: number;
+  memberId: number;
   round: number;
   scheduledAt: string;
   durationSec: number | null;

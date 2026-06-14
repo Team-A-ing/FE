@@ -136,6 +136,10 @@ export async function fetchMeetings(teamId: string): Promise<MeetingListItem[]> 
   return res.data.data;
 }
 
+export async function cancelMeeting(meetingId: number | string): Promise<void> {
+  await apiClient.delete(`/api/v1/meetings/${meetingId}`);
+}
+
 export async function submitSurvey(payload: SubmitSurveyPayload): Promise<void> {
   await apiClient.post<ApiResponse<void>>('/api/v1/surveys', payload);
 }
