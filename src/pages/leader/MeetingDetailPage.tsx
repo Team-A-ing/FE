@@ -409,26 +409,45 @@ function RoundBlock({
       </button>
 
       {isOpen && (
-        <ul className="flex flex-col gap-1.5 px-2 pb-2">
-          {group.plans.map((p) => (
-            <ChecklistRow
-              key={`plan-${p.planId}`}
-              checked={p.isCompleted}
-              label={p.content}
-              caption="액션 플랜"
-              onToggle={(next) => onTogglePlan(p.planId, next)}
-            />
-          ))}
-          {group.promises.map((p) => (
-            <ChecklistRow
-              key={`promise-${p.promiseId}`}
-              checked={p.status === "DONE"}
-              label={p.content}
-              caption={`약속 · ${p.ownerType === "LEADER" ? "리더" : "멤버"}`}
-              onToggle={(next) => onTogglePromise(p.promiseId, next)}
-            />
-          ))}
-        </ul>
+        <div className="flex flex-col gap-3 px-2 pb-2.5 pt-1">
+          {group.plans.length > 0 && (
+            <div>
+              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold text-emerald-600">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                액션 플랜
+              </p>
+              <ul className="flex flex-col gap-1.5">
+                {group.plans.map((p) => (
+                  <ChecklistRow
+                    key={`plan-${p.planId}`}
+                    checked={p.isCompleted}
+                    label={p.content}
+                    onToggle={(next) => onTogglePlan(p.planId, next)}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+          {group.promises.length > 0 && (
+            <div className={group.plans.length > 0 ? "border-t border-gray-100 pt-2.5" : ""}>
+              <p className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold text-violet-600">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-violet-500" />
+                미이행 약속
+              </p>
+              <ul className="flex flex-col gap-1.5">
+                {group.promises.map((p) => (
+                  <ChecklistRow
+                    key={`promise-${p.promiseId}`}
+                    checked={p.status === "DONE"}
+                    label={p.content}
+                    caption={p.ownerType === "LEADER" ? "리더 약속" : "멤버 약속"}
+                    onToggle={(next) => onTogglePromise(p.promiseId, next)}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -442,7 +461,7 @@ function ChecklistRow({
 }: {
   checked: boolean;
   label: string;
-  caption: string;
+  caption?: string;
   onToggle: (next: boolean) => void;
 }) {
   return (
@@ -458,7 +477,7 @@ function ChecklistRow({
           <span className={`block text-sm leading-snug ${checked ? "text-gray-400 line-through" : "text-gray-800"}`}>
             {label}
           </span>
-          <span className="text-[11px] text-gray-400">{caption}</span>
+          {caption && <span className="text-[11px] text-gray-400">{caption}</span>}
         </span>
       </label>
     </li>
