@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useMeetingStore } from "@/stores/meetingStore";
 import { useMeetings } from "@/features/meeting/useMeetings";
+import { cancelMeeting } from "@/api/meetings";
 import { useTeamActionItems } from "@/features/leader/useTeamActionItems";
 import { useTeamMembers } from "@/features/team/useTeamMembers";
 import { useAuthStore } from "@/stores/authStore";
@@ -38,8 +39,22 @@ export default function MeetingsPage({
   getMeetingPath = ROUTES.LEADER_MEETING,
   showTeamPanels = true,
 }: MeetingsPageProps) {
-  const { meetings, isLoading, error } = useMeetings();
+  const { meetings, isLoading, error, refetch } = useMeetings();
   const teamId = useAuthStore((s) => s.user?.teamId);
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
+
+  const handleCancelMeeting = async (meetingId: number, partnerName: string) => {
+    if (!window.confirm(`${partnerName}님과의 미팅을 취소할까요?\n취소하면 이후 회차 번호가 자동으로 조정됩니다.`)) return;
+    setCancellingId(meetingId);
+    try {
+      await cancelMeeting(meetingId);
+      await refetch();
+    } catch {
+      window.alert('미팅을 취소하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setCancellingId(null);
+    }
+  };
   const {
     data: actionItems,
     loading: actionItemsLoading,
@@ -165,25 +180,36 @@ export default function MeetingsPage({
               ) : (
                 <div className="mt-6 space-y-3">
                   {visibleFutureMeetings.map((meeting) => (
-                    <button
-                      key={meeting.meetingId}
-                      type="button"
-                      onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
-                      className="w-full rounded-3xl border border-blue-100 bg-blue-50 p-6 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-100"
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500">{formatScheduledAt(meeting.scheduledAt)}</p>
-                          <h3 className="mt-2 text-xl font-semibold text-gray-900">
-                            {meeting.partnerName}님과의 1on1
-                          </h3>
-                          <p className="mt-3 text-sm text-gray-600">{meeting.round}회차</p>
+                    <div key={meeting.meetingId} className="relative">
+                      <button
+                        type="button"
+                        onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
+                        className="w-full rounded-3xl border border-blue-100 bg-blue-50 p-6 text-left shadow-sm transition hover:border-blue-200 hover:bg-blue-100"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div>
+                            <p className="text-sm text-gray-500">{formatScheduledAt(meeting.scheduledAt)}</p>
+                            <h3 className="mt-2 text-xl font-semibold text-gray-900">
+                              {meeting.partnerName}님과의 1on1
+                            </h3>
+                            <p className="mt-3 text-sm text-gray-600">{meeting.round}회차</p>
+                          </div>
+                          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatus(meeting.status).badge}`}>
+                            {getStatus(meeting.status).label}
+                          </span>
                         </div>
-                        <span className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatus(meeting.status).badge}`}>
-                          {getStatus(meeting.status).label}
-                        </span>
-                      </div>
-                    </button>
+                      </button>
+                      {showCreateButton && meeting.status === 'CREATED' && (
+                        <button
+                          type="button"
+                          onClick={() => handleCancelMeeting(meeting.meetingId, meeting.partnerName)}
+                          disabled={cancellingId === meeting.meetingId}
+                          className="absolute right-4 top-4 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-500 transition hover:border-red-200 hover:text-red-500 disabled:opacity-50"
+                        >
+                          {cancellingId === meeting.meetingId ? '취소 중...' : '미팅 취소'}
+                        </button>
+                      )}
+                    </div>
                   ))}
                   {futureMeetings.length > 3 && (
                     <button
@@ -253,29 +279,43 @@ export default function MeetingsPage({
                 <>
                   <div className="space-y-3">
                     {paginatedHistory.map((meeting) => (
-                      <button
-                        key={meeting.meetingId}
-                        type="button"
-                        onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
-                        className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
-                      >
-                        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                          <div className="flex flex-wrap items-baseline gap-2">
-                            <h4 className="text-base font-semibold text-gray-900">
-                              {meeting.partnerName}님과의 1on1
-                            </h4>
-                            <span className="text-xs text-gray-400">
-                              {formatScheduledAt(meeting.scheduledAt)}
-                            </span>
+                      <div key={meeting.meetingId} className="relative">
+                        <button
+                          type="button"
+                          onClick={() => navigate(getMeetingPath(String(meeting.meetingId)))}
+                          className="w-full rounded-3xl border border-gray-200 bg-gray-50 p-4 text-left transition hover:border-gray-300 hover:bg-gray-100"
+                        >
+                          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                            <div className="flex flex-wrap items-baseline gap-2">
+                              <h4 className="text-base font-semibold text-gray-900">
+                                {meeting.partnerName}님과의 1on1
+                              </h4>
+                              <span className="text-xs text-gray-400">
+                                {formatScheduledAt(meeting.scheduledAt)}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatus(meeting.status).badge}`}>
+                                {getStatus(meeting.status).label}
+                              </span>
+                              <span className="text-sm text-gray-500">{meeting.round}회차</span>
+                              {showCreateButton && meeting.status === 'CREATED' && (
+                                <span className="inline-block w-[64px]" aria-hidden />
+                              )}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap items-center gap-2">
-                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${getStatus(meeting.status).badge}`}>
-                              {getStatus(meeting.status).label}
-                            </span>
-                            <span className="text-sm text-gray-500">{meeting.round}회차</span>
-                          </div>
-                        </div>
-                      </button>
+                        </button>
+                        {showCreateButton && meeting.status === 'CREATED' && (
+                          <button
+                            type="button"
+                            onClick={() => handleCancelMeeting(meeting.meetingId, meeting.partnerName)}
+                            disabled={cancellingId === meeting.meetingId}
+                            className="absolute bottom-4 right-4 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-500 transition hover:border-red-200 hover:text-red-500 disabled:opacity-50"
+                          >
+                            {cancellingId === meeting.meetingId ? '취소 중...' : '미팅 취소'}
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
                   {totalHistoryPages > 1 && (
