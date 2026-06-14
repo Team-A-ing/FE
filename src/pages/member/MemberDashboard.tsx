@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import CareerProfileCard from '@/components/career/CareerProfileCard';
 import CareerTimelineSection from '@/components/career/CareerTimelineSection';
 import ShowcaseSection from '@/components/career/ShowcaseSection';
@@ -6,8 +6,10 @@ import PageLayout from '@/components/layout/PageLayout';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import { useCareerDashboard } from '@/features/member/useCareerDashboard';
+import { useMemberChecklist } from '@/features/meeting/useMemberChecklist';
 import { useAuthStore } from '@/stores/authStore';
 import { updateProfile } from '@/api/user';
+import type { MemberInsightPromise } from '@/types/memberInsight';
 
 function renderSectionFallback(message: string) {
   return (
@@ -59,6 +61,86 @@ function renderDashboardSkeleton() {
         </div>
       </div>
     </div>
+  );
+}
+
+interface PromiseRoundGroup {
+  round: number;
+  meetingTitle: string;
+  date: string | null;
+  items: MemberInsightPromise[];
+}
+
+function PromisesByRoundSection({ memberId }: { memberId: string | number | undefined }) {
+  const { promises, loading, error, togglePromise } = useMemberChecklist(memberId);
+
+  const groups = useMemo<PromiseRoundGroup[]>(() => {
+    const map = new Map<number, PromiseRoundGroup>();
+    for (const p of promises) {
+      if (!map.has(p.round)) {
+        map.set(p.round, { round: p.round, meetingTitle: p.meetingTitle, date: p.date, items: [] });
+      }
+      map.get(p.round)!.items.push(p);
+    }
+    return [...map.values()].sort((a, b) => b.round - a.round);
+  }, [promises]);
+
+  return (
+    <Card className="rounded-lg p-5 sm:p-6">
+      <h2 className="text-base font-semibold text-gray-900">회차별 약속</h2>
+      <p className="mt-1 text-sm text-gray-500">미팅마다 오간 약속이에요. 지킨 약속은 체크해서 정리할 수 있어요.</p>
+
+      <div className="mt-4">
+        {loading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-10 rounded-lg" />
+            <Skeleton className="h-10 rounded-lg" />
+          </div>
+        ) : error ? (
+          <p className="text-sm text-gray-400">{error}</p>
+        ) : groups.length === 0 ? (
+          <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-6 text-center text-sm text-gray-400">
+            아직 약속이 없습니다.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-4">
+            {groups.map((g) => (
+              <div key={g.round}>
+                <div className="mb-1.5 flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">{g.round}회차</span>
+                  {g.date && <span className="text-xs text-gray-400">{g.date}</span>}
+                  {g.meetingTitle && <span className="text-xs text-gray-400">· {g.meetingTitle}</span>}
+                </div>
+                <ul className="flex flex-col gap-1.5">
+                  {g.items.map((p) => (
+                    <li key={p.promiseId}>
+                      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-100 px-3 py-2 hover:bg-gray-50">
+                        <input
+                          type="checkbox"
+                          checked={p.status === 'DONE'}
+                          onChange={(e) => togglePromise(p.promiseId, e.target.checked)}
+                          className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#5F74FA]"
+                        />
+                        <span className="min-w-0">
+                          <span className="mb-0.5 block">
+                            <span className={`text-xs font-medium ${p.ownerType === 'LEADER' ? 'text-violet-500' : 'text-teal-500'}`}>
+                              {p.ownerType === 'LEADER' ? '리더' : '멤버'}
+                            </span>
+                          </span>
+                          <span className={`block text-sm leading-snug ${p.status === 'DONE' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                            {p.content}
+                          </span>
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -169,6 +251,8 @@ export default function MemberDashboard() {
             ) : (
               <CareerTimelineSection events={data.timeline} />
             )}
+
+            <PromisesByRoundSection memberId={memberId} />
           </div>
         )}
       </div>

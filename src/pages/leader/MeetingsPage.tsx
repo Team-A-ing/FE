@@ -12,6 +12,8 @@ import { ROUTES } from "@/constants/routes";
 interface MeetingsPageProps {
   showCreateButton?: boolean;
   getMeetingPath?: (meetingId: string) => string;
+  // 팀 단위 우측 패널(1on1 멤버 · 액션 아이템) 노출 여부 — 멤버 화면에선 숨김
+  showTeamPanels?: boolean;
 }
 
 const statusMap: Record<string, { label: string; badge: string }> = {
@@ -34,6 +36,7 @@ function formatScheduledAt(scheduledAt: string | null | undefined) {
 export default function MeetingsPage({
   showCreateButton = true,
   getMeetingPath = ROUTES.LEADER_MEETING,
+  showTeamPanels = true,
 }: MeetingsPageProps) {
   const { meetings, isLoading, error } = useMeetings();
   const teamId = useAuthStore((s) => s.user?.teamId);
@@ -41,7 +44,7 @@ export default function MeetingsPage({
     data: actionItems,
     loading: actionItemsLoading,
     error: actionItemsError,
-  } = useTeamActionItems(teamId);
+  } = useTeamActionItems(showTeamPanels ? teamId : undefined);
   const setCreateModalOpen = useMeetingStore((s) => s.setCreateModalOpen);
   const navigate = useNavigate();
 
@@ -107,8 +110,8 @@ export default function MeetingsPage({
 
   const { members: teamMembers, fetch: fetchTeamMembers } = useTeamMembers(teamId ?? '');
   useEffect(() => {
-    if (teamId) fetchTeamMembers();
-  }, [teamId, fetchTeamMembers]);
+    if (teamId && showTeamPanels) fetchTeamMembers();
+  }, [teamId, showTeamPanels, fetchTeamMembers]);
   const memberList = useMemo(
     () => teamMembers.filter((m) => m.role === 'member'),
     [teamMembers]
@@ -138,7 +141,7 @@ export default function MeetingsPage({
           </div>
         )}
 
-        <div className="grid gap-6 xl:grid-cols-[1.6fr_0.9fr]">
+        <div className={`grid gap-6 ${showTeamPanels ? 'xl:grid-cols-[1.6fr_0.9fr]' : ''}`}>
           <div className="space-y-6">
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-4">
@@ -303,6 +306,7 @@ export default function MeetingsPage({
             </section>
           </div>
 
+          {showTeamPanels && (
           <aside className="space-y-6">
             <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
               <div className="flex items-center justify-between mb-4">
@@ -393,6 +397,7 @@ export default function MeetingsPage({
               )}
             </section>
           </aside>
+          )}
         </div>
       </div>
     </PageLayout>

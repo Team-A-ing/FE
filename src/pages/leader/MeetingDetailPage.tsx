@@ -16,6 +16,8 @@ import IotPanel from "@/components/iot/IotPanel";
 import PreBriefingCard from "@/components/meeting/PreBriefingCard";
 import { usePreBriefing } from "@/features/meeting/usePreBriefing";
 import { useSurveyCompletion } from "@/features/meeting/useSurveyCompletion";
+import { useMemberChecklist } from "@/features/meeting/useMemberChecklist";
+import type { MemberInsightActionPlan, MemberInsightPromise } from "@/types/memberInsight";
 
 type LocalStatus = "pending" | "recording" | "uploading" | "analyzing" | "completed" | "error";
 
@@ -36,6 +38,14 @@ export default function MeetingDetailPage() {
     meetingId,
     !loading && !error && localStatus === "pending",
   );
+  const checklist = useMemberChecklist(meeting?.memberId);
+  // 미팅 화면 진입 시점에 '미완료'였던 항목만 패널에 고정 노출 — 체크해도 사라지지 않고 완료 표시로 남는다.
+  const checklistPlans = checklist.outstanding
+    ? checklist.actionPlans.filter((p) => checklist.outstanding!.plans.has(p.planId))
+    : [];
+  const checklistPromises = checklist.outstanding
+    ? checklist.promises.filter((p) => checklist.outstanding!.promises.has(p.promiseId))
+    : [];
 
   useEffect(() => {
     if (meeting?.status === "ANALYZING" || meeting?.status === "TRANSCRIBING") {
@@ -259,14 +269,16 @@ export default function MeetingDetailPage() {
           )}
         </div>
 
-        <div className="w-[280px] border-l border-gray-200 p-6 flex flex-col gap-6">
-          <div>
-            <h4 className="font-semibold text-sm mb-2">나만의 노트</h4>
-            <textarea
-              className="w-full h-32 border border-gray-200 rounded-lg p-3 text-sm resize-none focus:outline-none focus:border-[#4E62E6]"
-              placeholder="나만 볼 수 있는 메모입니다."
-            />
-          </div>
+        <div className="w-[320px] border-l border-gray-200 p-6 flex flex-col gap-6 overflow-y-auto">
+          <MeetingChecklist
+            loading={checklist.loading}
+            error={checklist.error}
+            plans={checklistPlans}
+            promises={checklistPromises}
+            onTogglePlan={checklist.toggleActionPlan}
+            onTogglePromise={checklist.togglePromise}
+          />
+          <MeetingNotes meetingId={meetingId!} />
           <IotPanel ratio={ratio} isRecording={localStatus === 'recording'} />
         </div>
 
@@ -281,6 +293,134 @@ export default function MeetingDetailPage() {
         />
       </div>
     </PageLayout>
+  );
+}
+
+function MeetingChecklist({
+  loading,
+  error,
+  plans,
+  promises,
+  onTogglePlan,
+  onTogglePromise,
+}: {
+  loading: boolean;
+  error: string | null;
+  plans: MemberInsightActionPlan[];
+  promises: MemberInsightPromise[];
+  onTogglePlan: (planId: number, nextCompleted: boolean) => void;
+  onTogglePromise: (promiseId: number, nextDone: boolean) => void;
+}) {
+  return (
+    <div>
+      <h4 className="font-semibold text-sm mb-2">지난 미팅 체크</h4>
+      <p className="text-xs text-gray-400 mb-3">이번 1on1에서 함께 확인하고 체크하세요.</p>
+
+      {loading ? (
+        <div className="space-y-2">
+          <div className="h-9 rounded-lg bg-gray-100 animate-pulse" />
+          <div className="h-9 rounded-lg bg-gray-100 animate-pulse" />
+        </div>
+      ) : error ? (
+        <p className="text-xs text-gray-400">{error}</p>
+      ) : plans.length === 0 && promises.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-center text-xs text-gray-400">
+          확인할 액션 플랜이나 약속이 없습니다.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {plans.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs font-semibold text-gray-500">액션 플랜</p>
+              <ul className="flex flex-col gap-1.5">
+                {plans.map((p) => (
+                  <ChecklistRow
+                    key={`plan-${p.planId}`}
+                    checked={p.isCompleted}
+                    label={p.content}
+                    caption={`${p.round}회차`}
+                    onToggle={(next) => onTogglePlan(p.planId, next)}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+          {promises.length > 0 && (
+            <div>
+              <p className="mb-1.5 text-xs font-semibold text-gray-500">미이행 약속</p>
+              <ul className="flex flex-col gap-1.5">
+                {promises.map((p) => (
+                  <ChecklistRow
+                    key={`promise-${p.promiseId}`}
+                    checked={p.status === "DONE"}
+                    label={p.content}
+                    caption={`${p.round}회차 · ${p.ownerType === "LEADER" ? "리더" : "멤버"}`}
+                    onToggle={(next) => onTogglePromise(p.promiseId, next)}
+                  />
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ChecklistRow({
+  checked,
+  label,
+  caption,
+  onToggle,
+}: {
+  checked: boolean;
+  label: string;
+  caption: string;
+  onToggle: (next: boolean) => void;
+}) {
+  return (
+    <li>
+      <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-100 px-2.5 py-2 hover:bg-gray-50">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onToggle(e.target.checked)}
+          className="mt-0.5 h-4 w-4 flex-shrink-0 accent-[#5F74FA]"
+        />
+        <span className="min-w-0">
+          <span className={`block text-sm leading-snug ${checked ? "text-gray-400 line-through" : "text-gray-800"}`}>
+            {label}
+          </span>
+          <span className="text-[11px] text-gray-400">{caption}</span>
+        </span>
+      </label>
+    </li>
+  );
+}
+
+function MeetingNotes({ meetingId }: { meetingId: string }) {
+  const storageKey = `meeting-note-${meetingId}`;
+  const [note, setNote] = useState(() => localStorage.getItem(storageKey) ?? "");
+
+  useEffect(() => {
+    setNote(localStorage.getItem(storageKey) ?? "");
+  }, [storageKey]);
+
+  const handleChange = (value: string) => {
+    setNote(value);
+    localStorage.setItem(storageKey, value);
+  };
+
+  return (
+    <div>
+      <h4 className="font-semibold text-sm mb-2">나만의 노트</h4>
+      <textarea
+        value={note}
+        onChange={(e) => handleChange(e.target.value)}
+        className="w-full h-32 border border-gray-200 rounded-lg p-3 text-sm resize-none focus:outline-none focus:border-[#4E62E6]"
+        placeholder="나만 볼 수 있는 메모입니다."
+      />
+    </div>
   );
 }
 
