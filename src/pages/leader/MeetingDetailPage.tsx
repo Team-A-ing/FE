@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageLayout from "@/components/layout/PageLayout";
 import { useChunkedRecorder } from "@/features/meeting/useChunkedRecorder";
@@ -296,6 +296,12 @@ export default function MeetingDetailPage() {
   );
 }
 
+interface RoundGroup {
+  round: number;
+  plans: MemberInsightActionPlan[];
+  promises: MemberInsightPromise[];
+}
+
 function MeetingChecklist({
   loading,
   error,
@@ -311,6 +317,20 @@ function MeetingChecklist({
   onTogglePlan: (planId: number, nextCompleted: boolean) => void;
   onTogglePromise: (promiseId: number, nextDone: boolean) => void;
 }) {
+  // 미완료 액션 플랜 + 미이행 약속을 회차별로 묶고 최근 회차부터 정렬.
+  const groups = useMemo<RoundGroup[]>(() => {
+    const byRound = new Map<number, RoundGroup>();
+    const ensure = (round: number) => {
+      if (!byRound.has(round)) byRound.set(round, { round, plans: [], promises: [] });
+      return byRound.get(round)!;
+    };
+    for (const p of plans) ensure(p.round).plans.push(p);
+    for (const pr of promises) ensure(pr.round).promises.push(pr);
+    return [...byRound.values()].sort((a, b) => b.round - a.round);
+  }, [plans, promises]);
+
+  const [topGroup, ...restGroups] = groups;
+
   return (
     <div>
       <h4 className="font-semibold text-sm mb-2">지난 미팅 체크</h4>
@@ -323,45 +343,92 @@ function MeetingChecklist({
         </div>
       ) : error ? (
         <p className="text-xs text-gray-400">{error}</p>
-      ) : plans.length === 0 && promises.length === 0 ? (
+      ) : groups.length === 0 ? (
         <p className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-4 text-center text-xs text-gray-400">
           확인할 액션 플랜이나 약속이 없습니다.
         </p>
       ) : (
-        <div className="flex flex-col gap-4">
-          {plans.length > 0 && (
-            <div>
-              <p className="mb-1.5 text-xs font-semibold text-gray-500">액션 플랜</p>
-              <ul className="flex flex-col gap-1.5">
-                {plans.map((p) => (
-                  <ChecklistRow
-                    key={`plan-${p.planId}`}
-                    checked={p.isCompleted}
-                    label={p.content}
-                    caption={`${p.round}회차`}
-                    onToggle={(next) => onTogglePlan(p.planId, next)}
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
-          {promises.length > 0 && (
-            <div>
-              <p className="mb-1.5 text-xs font-semibold text-gray-500">미이행 약속</p>
-              <ul className="flex flex-col gap-1.5">
-                {promises.map((p) => (
-                  <ChecklistRow
-                    key={`promise-${p.promiseId}`}
-                    checked={p.status === "DONE"}
-                    label={p.content}
-                    caption={`${p.round}회차 · ${p.ownerType === "LEADER" ? "리더" : "멤버"}`}
-                    onToggle={(next) => onTogglePromise(p.promiseId, next)}
-                  />
-                ))}
-              </ul>
-            </div>
-          )}
+        <div className="flex flex-col gap-2.5">
+          <RoundBlock
+            group={topGroup}
+            isLatest
+            collapsible={false}
+            onTogglePlan={onTogglePlan}
+            onTogglePromise={onTogglePromise}
+          />
+          {restGroups.map((g) => (
+            <RoundBlock
+              key={g.round}
+              group={g}
+              collapsible
+              defaultOpen={false}
+              onTogglePlan={onTogglePlan}
+              onTogglePromise={onTogglePromise}
+            />
+          ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+function RoundBlock({
+  group,
+  isLatest = false,
+  collapsible,
+  defaultOpen = true,
+  onTogglePlan,
+  onTogglePromise,
+}: {
+  group: RoundGroup;
+  isLatest?: boolean;
+  collapsible: boolean;
+  defaultOpen?: boolean;
+  onTogglePlan: (planId: number, nextCompleted: boolean) => void;
+  onTogglePromise: (promiseId: number, nextDone: boolean) => void;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const isOpen = collapsible ? open : true;
+  const count = group.plans.length + group.promises.length;
+
+  return (
+    <div className="rounded-lg border border-gray-100">
+      <button
+        type="button"
+        onClick={() => collapsible && setOpen((v) => !v)}
+        className={`flex w-full items-center gap-2 px-2.5 py-2 text-left ${collapsible ? "hover:bg-gray-50" : ""} ${isLatest ? "bg-[#5F74FA]/5" : ""}`}
+      >
+        {isLatest && (
+          <span className="rounded-full bg-[#5F74FA] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+            직전 미팅
+          </span>
+        )}
+        <span className="text-xs font-semibold text-gray-700">{group.round}회차</span>
+        <span className="text-[11px] text-gray-400">{count}건</span>
+        {collapsible && <span className="ml-auto text-[11px] text-gray-400">{isOpen ? "▲" : "▼"}</span>}
+      </button>
+
+      {isOpen && (
+        <ul className="flex flex-col gap-1.5 px-2 pb-2">
+          {group.plans.map((p) => (
+            <ChecklistRow
+              key={`plan-${p.planId}`}
+              checked={p.isCompleted}
+              label={p.content}
+              caption="액션 플랜"
+              onToggle={(next) => onTogglePlan(p.planId, next)}
+            />
+          ))}
+          {group.promises.map((p) => (
+            <ChecklistRow
+              key={`promise-${p.promiseId}`}
+              checked={p.status === "DONE"}
+              label={p.content}
+              caption={`약속 · ${p.ownerType === "LEADER" ? "리더" : "멤버"}`}
+              onToggle={(next) => onTogglePromise(p.promiseId, next)}
+            />
+          ))}
+        </ul>
       )}
     </div>
   );
