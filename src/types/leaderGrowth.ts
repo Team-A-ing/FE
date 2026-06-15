@@ -12,10 +12,18 @@ export interface LeaderPromiseStats {
   doneRate: number; // 0~100, 소수점 1자리
 }
 
+export interface CoachingPlanItem {
+  planId: number;
+  content: string;
+  memberName: string;
+}
+
 export interface CoachingExecution {
   total: number;
   completed: number;
   executionRate: number; // 0~100, 소수점 1자리
+  completedItems: CoachingPlanItem[];
+  pendingItems: CoachingPlanItem[];
 }
 
 export interface MemberCadence {

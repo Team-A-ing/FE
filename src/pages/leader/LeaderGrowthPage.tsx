@@ -1,8 +1,14 @@
+import { useState } from 'react';
 import PageLayout from '@/components/layout/PageLayout';
 import Card from '@/components/ui/Card';
 import Skeleton from '@/components/ui/Skeleton';
 import { useLeaderGrowth } from '@/features/leader/useLeaderGrowth';
-import type { MemberCadence, MonthlyTrendPoint } from '@/types/leaderGrowth';
+import type {
+  CoachingExecution,
+  LeaderPromiseStats,
+  MemberCadence,
+  MonthlyTrendPoint,
+} from '@/types/leaderGrowth';
 
 const RECOMMENDED_LEADER_RATIO = 40;
 
@@ -93,6 +99,117 @@ function CadenceList({ items }: { items: MemberCadence[] }) {
         );
       })}
     </ul>
+  );
+}
+
+function CoachingExecutionCard({
+  execution,
+  promiseStats,
+}: {
+  execution: CoachingExecution;
+  promiseStats: LeaderPromiseStats;
+}) {
+  const [open, setOpen] = useState<'completed' | 'pending' | null>(null);
+  const pending = execution.total - execution.completed;
+  const completedItems = execution.completedItems ?? [];
+  const pendingItems = execution.pendingItems ?? [];
+  const list = open === 'completed' ? completedItems : open === 'pending' ? pendingItems : [];
+
+  return (
+    <Card className="p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">코칭 실행률</p>
+      <p className="mt-1 text-xs text-gray-400">미팅 후 제안된 액션 플랜 중 실제로 실행한 비율</p>
+
+      {execution.total > 0 ? (
+        <>
+          <div className="mt-4 flex items-end gap-8">
+            <div>
+              <p className="text-3xl font-bold text-gray-900">{Math.round(execution.executionRate)}%</p>
+              <p className="mt-0.5 text-xs text-gray-400">실행률</p>
+            </div>
+            <p className="pb-1 text-sm text-gray-600">
+              받은 제안 <span className="font-semibold">{execution.total}건</span>
+            </p>
+          </div>
+
+          {/* 이행 / 미이행 토글 — 클릭 시 해당 목록 펼침 */}
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={() => setOpen((v) => (v === 'completed' ? null : 'completed'))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-left text-sm transition ${
+                open === 'completed' ? 'border-teal-300 bg-teal-50' : 'border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <span className="font-semibold text-teal-600">이행 {execution.completed}건</span>
+              <span className="ml-1 text-xs text-gray-400">{open === 'completed' ? '▲' : '▼'}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setOpen((v) => (v === 'pending' ? null : 'pending'))}
+              className={`flex-1 rounded-lg border px-3 py-2 text-left text-sm transition ${
+                open === 'pending' ? 'border-amber-300 bg-amber-50' : 'border-gray-200 hover:bg-gray-50'
+              }`}
+            >
+              <span className="font-semibold text-amber-600">미이행 {pending}건</span>
+              <span className="ml-1 text-xs text-gray-400">{open === 'pending' ? '▲' : '▼'}</span>
+            </button>
+          </div>
+
+          {open && (
+            <ul className="mt-2.5 flex flex-col gap-1.5">
+              {list.length === 0 ? (
+                <li className="rounded-lg border border-dashed border-gray-200 bg-gray-50 px-3 py-3 text-center text-xs text-gray-400">
+                  {open === 'completed' ? '아직 이행한 액션 플랜이 없습니다.' : '미이행 액션 플랜이 없습니다.'}
+                </li>
+              ) : (
+                list.map((item) => (
+                  <li
+                    key={item.planId}
+                    className="flex items-start gap-2 rounded-lg border border-gray-100 px-3 py-2"
+                  >
+                    <span
+                      className={`mt-0.5 flex-shrink-0 text-sm ${
+                        open === 'completed' ? 'text-teal-500' : 'text-gray-300'
+                      }`}
+                    >
+                      {open === 'completed' ? '✓' : '○'}
+                    </span>
+                    <div className="min-w-0">
+                      <p className={`text-sm leading-snug ${open === 'completed' ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                        {item.content}
+                      </p>
+                      {item.memberName && <p className="text-[11px] text-gray-400">{item.memberName}</p>}
+                    </div>
+                  </li>
+                ))
+              )}
+            </ul>
+          )}
+        </>
+      ) : (
+        <TrendEmpty message="아직 제안된 액션 플랜이 없습니다." />
+      )}
+
+      <div className="mt-5 border-t border-gray-100 pt-4">
+        <p className="mb-2.5 text-xs font-semibold text-gray-500">내 약속 이행</p>
+        {promiseStats.total > 0 ? (
+          <div className="flex items-center gap-6">
+            <p className="text-xl font-bold text-gray-900">
+              {Math.round(promiseStats.doneRate)}%
+              <span className="ml-1 text-xs font-normal text-gray-400">이행률</span>
+            </p>
+            <div className="flex gap-4 text-sm">
+              <span className="text-teal-600">이행 {promiseStats.done}</span>
+              <span className="text-gray-500">대기 {promiseStats.pending}</span>
+              <span className="text-red-500">미이행 {promiseStats.missed}</span>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-400">아직 등록한 약속이 없습니다.</p>
+        )}
+      </div>
+    </Card>
   );
 }
 
@@ -224,48 +341,10 @@ export default function LeaderGrowthPage() {
               </Card>
 
               {/* 코칭 실행률 */}
-              <Card className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                  코칭 실행률
-                </p>
-                <p className="mt-1 text-xs text-gray-400">
-                  미팅 후 제안된 액션 플랜 중 실제로 실행한 비율
-                </p>
-                {data.coachingExecution.total > 0 ? (
-                  <div className="mt-4 flex items-end gap-8">
-                    <div>
-                      <p className="text-3xl font-bold text-gray-900">
-                        {Math.round(data.coachingExecution.executionRate)}%
-                      </p>
-                      <p className="mt-0.5 text-xs text-gray-400">실행률</p>
-                    </div>
-                    <p className="pb-1 text-sm text-gray-600">
-                      받은 제안 <span className="font-semibold">{data.coachingExecution.total}건</span> 중{' '}
-                      <span className="font-semibold text-teal-600">{data.coachingExecution.completed}건</span> 실행
-                    </p>
-                  </div>
-                ) : (
-                  <TrendEmpty message="아직 제안된 액션 플랜이 없습니다." />
-                )}
-                <div className="mt-5 border-t border-gray-100 pt-4">
-                  <p className="mb-2.5 text-xs font-semibold text-gray-500">내 약속 이행</p>
-                  {data.promiseStats.total > 0 ? (
-                    <div className="flex items-center gap-6">
-                      <p className="text-xl font-bold text-gray-900">
-                        {Math.round(data.promiseStats.doneRate)}%
-                        <span className="ml-1 text-xs font-normal text-gray-400">이행률</span>
-                      </p>
-                      <div className="flex gap-4 text-sm">
-                        <span className="text-teal-600">이행 {data.promiseStats.done}</span>
-                        <span className="text-gray-500">대기 {data.promiseStats.pending}</span>
-                        <span className="text-red-500">미이행 {data.promiseStats.missed}</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-gray-400">아직 등록한 약속이 없습니다.</p>
-                  )}
-                </div>
-              </Card>
+              <CoachingExecutionCard
+                execution={data.coachingExecution}
+                promiseStats={data.promiseStats}
+              />
             </div>
           </div>
         )}
