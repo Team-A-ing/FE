@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { fetchMemberInsight } from '@/api/career';
+import { completeActionPlan, uncompleteActionPlan } from '@/api/actionPlans';
 import type { MemberInsight } from '@/types/memberInsight';
 
 export function useMemberInsight(memberId: string | undefined) {
@@ -38,5 +39,23 @@ export function useMemberInsight(memberId: string | undefined) {
     };
   }, [memberId]);
 
-  return { data, loading, error };
+  const toggleActionPlan = useCallback(async (planId: number, nextCompleted: boolean) => {
+    setData((prev) =>
+      prev
+        ? { ...prev, actionPlans: prev.actionPlans.map((a) => (a.planId === planId ? { ...a, isCompleted: nextCompleted } : a)) }
+        : prev,
+    );
+    try {
+      await (nextCompleted ? completeActionPlan(planId) : uncompleteActionPlan(planId));
+    } catch {
+      // 실패 시 롤백
+      setData((prev) =>
+        prev
+          ? { ...prev, actionPlans: prev.actionPlans.map((a) => (a.planId === planId ? { ...a, isCompleted: !nextCompleted } : a)) }
+          : prev,
+      );
+    }
+  }, []);
+
+  return { data, loading, error, toggleActionPlan };
 }

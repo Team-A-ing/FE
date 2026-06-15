@@ -126,7 +126,13 @@ function PromisesSection({ promises }: { promises: MemberInsightPromise[] }) {
   );
 }
 
-function ActionPlansSection({ plans }: { plans: MemberInsightActionPlan[] }) {
+function ActionPlansSection({
+  plans,
+  onToggle,
+}: {
+  plans: MemberInsightActionPlan[];
+  onToggle: (planId: number, nextCompleted: boolean) => void;
+}) {
   const grouped = useMemo(() => groupByMeeting(plans), [plans]);
   if (plans.length === 0) {
     return <p className="text-sm text-gray-400">아직 액션 플랜이 없습니다.</p>;
@@ -137,13 +143,18 @@ function ActionPlansSection({ plans }: { plans: MemberInsightActionPlan[] }) {
         <AccordionGroup key={`${g.date}__${g.meetingTitle}`} date={g.date} meetingTitle={g.meetingTitle}>
           <ul className="flex flex-col gap-1.5">
             {g.items.map((a) => (
-              <li key={a.planId} className="flex items-start gap-2 rounded-lg border border-gray-100 px-3 py-2">
-                <span className={`mt-0.5 flex-shrink-0 text-sm ${a.isCompleted ? 'text-emerald-500' : 'text-gray-300'}`}>
-                  {a.isCompleted ? '✓' : '○'}
-                </span>
-                <p className={`text-sm ${a.isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
-                  {a.content}
-                </p>
+              <li key={a.planId}>
+                <label className="flex cursor-pointer items-start gap-2 rounded-lg border border-gray-100 px-3 py-2 hover:bg-gray-50">
+                  <input
+                    type="checkbox"
+                    checked={a.isCompleted}
+                    onChange={(e) => onToggle(a.planId, e.target.checked)}
+                    className="mt-0.5 h-4 w-4 flex-shrink-0 accent-emerald-500"
+                  />
+                  <span className={`text-sm leading-snug ${a.isCompleted ? 'text-gray-400 line-through' : 'text-gray-800'}`}>
+                    {a.content}
+                  </span>
+                </label>
               </li>
             ))}
           </ul>
@@ -157,7 +168,7 @@ export default function LeaderMemberDetailPage() {
   const { memberId } = useParams<{ memberId: string }>();
   const navigate = useNavigate();
   const { data: career, loading: careerLoading, errors: careerErrors } = useCareerDashboard(memberId);
-  const { data: insight, loading: insightLoading, error: insightError } = useMemberInsight(memberId);
+  const { data: insight, loading: insightLoading, error: insightError, toggleActionPlan } = useMemberInsight(memberId);
 
   const title = insight?.memberName ?? '멤버 상세';
 
@@ -204,8 +215,8 @@ export default function LeaderMemberDetailPage() {
             <SectionCard title="약속" desc="날짜별 약속과 이행 상태입니다.">
               <PromisesSection promises={insight.promises} />
             </SectionCard>
-            <SectionCard title="누적 액션 플랜" desc="미팅마다 정한 다음 액션입니다.">
-              <ActionPlansSection plans={insight.actionPlans} />
+            <SectionCard title="누적 액션 플랜" desc="미팅마다 정한 다음 액션입니다. 체크박스로 이행/미이행을 표시하면 '나의 리더십 성장'의 코칭 실행률에 반영됩니다.">
+              <ActionPlansSection plans={insight.actionPlans} onToggle={toggleActionPlan} />
             </SectionCard>
           </>
         ) : null}
